@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom"; // just Routes & Route
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import AppLayout from "./components/AppLayout";
+import Venue from "./pages/venue";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
           </AppLayout>
         }
       />
+      <Route path="/venue" element={<AppLayout><Venue /></AppLayout>} />
     </Routes>
   );
 };
