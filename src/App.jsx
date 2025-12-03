@@ -1,12 +1,26 @@
-import React from 'react'
-import Home from './pages/Home'
+import React from "react";
+import { Routes, Route } from "react-router-dom"; // just Routes & Route
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import AppLayout from "./components/AppLayout";
 
 const App = () => {
   return (
-    <>
-      <Home />
-    </>
-  )
-}
+    <Routes>
+      {/* Pages without NavigationBar */}
+      <Route path="/login" element={<Login />} />
 
-export default App
+      {/* Pages with NavigationBar */}
+      <Route
+        path="/"
+        element={
+          <AppLayout>
+            <Home />
+          </AppLayout>
+        }
+      />
+    </Routes>
+  );
+};
+
+export default App;
