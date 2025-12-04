@@ -17,7 +17,7 @@ const AddOrganization = () => {
                         type="text"
                         name="organization_name"
                         placeholder="Organization Name"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-9 pr-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 

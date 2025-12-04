@@ -23,12 +23,12 @@ const AddVenue = () => {
 
                 {/* Organization Select */}
                 <div className="relative">
-                    <img
+                    {/* <img
                         src="/OrganizationChecklist.svg"
                         alt="org icon"
                         className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 pointer-events-none"
-                    />
-                    <select className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    /> */}
+                    <select className="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Select Organization</option>
                         {organizations.map((org, idx) => (
                             <option key={idx} value={org}>

@@ -36,7 +36,7 @@ const ListVenue = () => {
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
-            <h1 className="text-gray-800 font-semibold text-xl mb-4">
+            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">
                 Venue Management
             </h1>
 

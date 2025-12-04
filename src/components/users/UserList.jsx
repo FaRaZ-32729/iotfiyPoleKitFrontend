@@ -36,7 +36,7 @@ const UserList = ({ onEdit, selectedUser }) => {
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
-            <h1 className="text-gray-800 font-semibold text-xl mb-4">User Management</h1>
+            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">User Management</h1>
 
             <div className="mb-4">
                 <h2 className="text-center text-gray-800 font-semibold text-lg">User List</h2>

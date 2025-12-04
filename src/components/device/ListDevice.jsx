@@ -33,7 +33,12 @@ const ListDevice = () => {
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
-            <h1 className="text-gray-800 font-semibold text-xl mb-4">Device Management</h1>
+            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">Device Management</h1>
+
+            <div className="mb-4">
+                <h2 className="text-center text-gray-800 font-semibold text-lg">Device List</h2>
+                <div className="mx-auto mt-2 h-px w-4/5 bg-blue-600/40"></div>
+            </div>
 
             <div className="overflow-x-auto overflow-y-auto flex-1">
                 <table className="w-full table-auto text-left">
