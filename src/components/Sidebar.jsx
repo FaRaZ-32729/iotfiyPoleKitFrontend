@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { List, AlertCircle, CheckCircle } from "lucide-react";
+import { List, AlertCircle, CheckCircle, ChevronDown } from "lucide-react";
 
 const Sidebar = () => {
     const [activeTab, setActiveTab] = useState("all");
+    const [orgOpen, setOrgOpen] = useState(false);
+    const [venueOpen, setVenueOpen] = useState(false);
 
     const tabs = [
         { id: "all", label: "All", icon: List },
@@ -10,15 +12,58 @@ const Sidebar = () => {
         { id: "detected", label: "Detected", icon: AlertCircle },
     ];
 
+    const organizations = ["Org 1", "Org 2", "Org 3"];
+    const venues = ["Venue A", "Venue B", "Venue C"];
+
     return (
         <aside className="md:w-96 w-full bg-white shadow-md flex flex-col order-2 md:order-1">
-            {/* Desktop header */}
-            <div className="p-4 border-b hidden md:flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Need Maintenance</h2>
-                <input
-                    className="border px-3 py-1 rounded-lg text-sm"
-                    placeholder="Search..."
-                />
+            {/* Top Dropdown Buttons */}
+            <div className="flex justify-between items-center p-4 border-b">
+                {/* Organization Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setOrgOpen(!orgOpen)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-medium shadow "
+                    >
+                        Organization
+                        <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {orgOpen && (
+                        <div className="absolute mt-2 w-40 bg-white border rounded-lg shadow-md z-10">
+                            {organizations.map((org) => (
+                                <div
+                                    key={org}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    {org}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Venue Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setVenueOpen(!venueOpen)}
+                        className="flex items-center gap-2 px-4 py-2  text-blue-700 rounded-full font-medium shadow "
+                    >
+                        Venue
+                        <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {venueOpen && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md z-10">
+                            {venues.map((venue) => (
+                                <div
+                                    key={venue}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    {venue}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Desktop Tabs */}
@@ -28,8 +73,7 @@ const Sidebar = () => {
                         key={id}
                         onClick={() => setActiveTab(id)}
                         className={`flex-1 py-3 flex items-center justify-center gap-2 text-sm font-medium 
-                            ${activeTab === id ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}
-                        `}
+                            ${activeTab === id ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
                     >
                         <Icon className="h-4 w-4" /> {label}
                     </button>
@@ -61,7 +105,6 @@ const Sidebar = () => {
                     >
                         <p className="font-semibold">DEVICE-{i + 1}</p>
                         <p className="text-xs text-gray-500 mt-1">Voltage: 140v</p>
-
                         <span className="mt-2 inline-block text-xs bg-red-500 text-white px-3 py-1 rounded-lg">
                             Detected
                         </span>

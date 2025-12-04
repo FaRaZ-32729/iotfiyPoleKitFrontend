@@ -5,7 +5,7 @@ const AddVenue = () => {
     const organizations = ["Organization A", "Organization B", "Organization C"];
 
     return (
-        <div className="bg-[#EEF3F9] border border-gray-300 rounded-xl shadow-md w-full max-w-md mx-auto p-6 flex flex-col justify-center">
+        <div className="bg-[#EEF3F9] border border-gray-300 rounded-xl shadow-md w-full max-w-md p-6 flex flex-col justify-center ">
             <h2 className="text-center text-xl font-semibold mb-1">Add Venues</h2>
             <p className="text-center text-gray-500 mb-6">Welcome back! Select method to add venue</p>
 

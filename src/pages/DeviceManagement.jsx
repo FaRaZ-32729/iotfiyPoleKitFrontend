@@ -1,26 +1,26 @@
 import React from "react";
-import ListVenue from "../components/venue/ListVenue";
-import AddVenue from "../components/venue/AddVenue";
+import ListDevice from "../components/device/ListDevice";
+import AddDevice from "../components/device/AddDevice";
 
-const Venue = () => {
+const DeviceManagement = () => {
     return (
         <div className="bg-white rounded-2xl w-full h-full p-4 md:p-6">
             <div className="flex flex-col md:flex-row gap-2 h-full w-full shadow-md rounded-2xl">
-                {/* Venue List */}
+                {/* Device List */}
                 <div className="flex-1 min-h-[400px] md:min-h-0">
-                    <ListVenue />
+                    <ListDevice />
                 </div>
 
                 {/* Divider for tablet+ */}
                 <div className="hidden md:block w-px bg-gray-200"></div>
 
-                {/* Add Venue Form */}
+                {/* Add Device Form */}
                 <div className="flex-1 min-h-[400px] md:min-h-0 flex justify-center">
-                    <AddVenue />
+                    <AddDevice />
                 </div>
             </div>
         </div>
     );
 };
 
-export default Venue;
+export default DeviceManagement;
