@@ -9,11 +9,11 @@ const Venue = () => {
     return (
         <div className="bg-white rounded-2xl w-full h-full p-4 md:p-6 relative">
             {/* Desktop Layout */}
-            <div className="hidden md:flex flex-col md:flex-row gap-2 h-full w-full shadow-md rounded-2xl">
+            <div className="hidden md:flex flex-col md:flex-row gap-2 h-full w-full shadow-md rounded-2xl px-10 py-5">
                 <div className="flex-1 min-h-[400px] md:min-h-0">
                     <ListVenue />
                 </div>
-                <div className="hidden md:block w-px bg-gray-200"></div>
+                {/* <div className="hidden md:block w-px bg-gray-200"></div> */}
                 <div className="flex-1 min-h-[400px] md:min-h-0 flex justify-center">
                     <AddVenue />
                 </div>

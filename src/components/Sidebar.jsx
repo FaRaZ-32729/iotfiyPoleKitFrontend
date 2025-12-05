@@ -12,13 +12,13 @@ const Sidebar = () => {
         { id: "detected", label: "Detected", icon: AlertCircle },
     ];
 
-    const organizations = ["Org 1", "Org 2", "Org 3"];
+    const organizations = ["Org 1", "Org 2", "Org 3", "Org 3", "Org 3", "Org 3", "Org 3"];
     const venues = ["Venue A", "Venue B", "Venue C"];
 
     return (
-        <aside className="md:w-96 w-full bg-white shadow-md flex flex-col order-2 md:order-1">
-            {/* Top Dropdown Buttons */}
-            <div className="flex justify-between items-center p-4 border-b">
+        <aside className="md:w-96 w-full bg-white shadow-md flex flex-col order-1 md:order-1">
+            {/* Top Dropdown Buttons  border-b*/}
+            <div className="flex justify-between items-center p-4 ">
                 {/* Organization Dropdown */}
                 <div className="relative">
                     <button
@@ -97,20 +97,24 @@ const Sidebar = () => {
             </div>
 
             {/* 🔄 MOBILE HORIZONTAL Cards */}
-            <div className="px-3 mt-4 flex gap-4 overflow-x-auto pb-24 md:hidden">
+            <div className="px-3 flex gap-4 overflow-x-auto pb-5 md:hidden">
                 {[...Array(6)].map((_, i) => (
                     <div
                         key={i}
-                        className="min-w-[180px] bg-white border rounded-2xl shadow-sm p-4"
+                        className="min-w-[150px] bg-white border rounded-2xl shadow-sm p-4"
                     >
                         <p className="font-semibold">DEVICE-{i + 1}</p>
-                        <p className="text-xs text-gray-500 mt-1">Voltage: 140v</p>
-                        <span className="mt-2 inline-block text-xs bg-red-500 text-white px-3 py-1 rounded-lg">
-                            Detected
-                        </span>
+
+                        {/* Volt + Status */}
+                        <div className="mt-2">
+                            <p className="text-xs font-semibold text-gray-600">Volt :<span className="inline-block text-xs text-red-500 px-1">
+                                Detected
+                            </span></p>
+                        </div>
                     </div>
                 ))}
             </div>
+
         </aside>
     );
 };
