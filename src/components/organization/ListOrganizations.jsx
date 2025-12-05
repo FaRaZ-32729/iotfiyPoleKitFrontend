@@ -3,6 +3,8 @@ import { Pencil, Trash } from "lucide-react";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
 import axios from "../../axiosConfig";
 import { toast } from "react-toastify";
+import DeleteConfirmationModal from "../DeleteConfirmationModal";
+
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const ListOrganization = () => {
@@ -12,7 +14,6 @@ const ListOrganization = () => {
     const [editedName, setEditedName] = useState("");
     const [saving, setSaving] = useState(false);
 
-    // New state for delete confirmation
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [orgToDelete, setOrgToDelete] = useState(null);
     const [deleting, setDeleting] = useState(false);
@@ -86,10 +87,14 @@ const ListOrganization = () => {
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
-            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">Organization Management</h1>
+            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">
+                Organization Management
+            </h1>
 
             <div className="mb-4">
-                <h2 className="text-center text-gray-800 font-semibold text-lg">Organization List</h2>
+                <h2 className="text-center text-gray-800 font-semibold text-lg">
+                    Organization List
+                </h2>
                 <div className="mx-auto mt-2 h-px w-4/5 bg-blue-600/40"></div>
             </div>
 
@@ -175,28 +180,12 @@ const ListOrganization = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {isDeleteModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
-                        <h2 className="text-lg font-semibold mb-4 text-center">Are you sure you want to delete this organization?</h2>
-                        <div className="flex justify-center gap-4 mt-4">
-                            <button
-                                onClick={cancelDelete}
-                                className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleDelete}
-                                disabled={deleting}
-                                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300"
-                            >
-                                {deleting ? "Deleting..." : "Delete"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onCancel={cancelDelete}
+                onConfirm={handleDelete}
+                loading={deleting}
+            />
         </div>
     );
 };
