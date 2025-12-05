@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import { Pencil, Trash } from "lucide-react";
+import { useOrganizations } from "../../contextApi/OrganizationContext";
+import axios from "../../axiosConfig";
+import { toast } from "react-toastify";
+const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const ListOrganization = () => {
-    const [organizations, setOrganizations] = useState([
-        { id: 1, name: "Organization A" },
-        { id: 2, name: "Organization B" },
-        { id: 3, name: "Organization C" },
-        { id: 4, name: "Organization D" },
-    ]);
-
+    const { organizations, setOrganizations, loading, error } = useOrganizations();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [editedName, setEditedName] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    // New state for delete confirmation
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [orgToDelete, setOrgToDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     const openModal = (org) => {
         setSelectedOrg(org);
@@ -25,14 +29,60 @@ const ListOrganization = () => {
         setEditedName("");
     };
 
-    const saveChanges = () => {
-        setOrganizations((prev) =>
-            prev.map((org) =>
-                org.id === selectedOrg.id ? { ...org, name: editedName } : org
-            )
-        );
-        closeModal();
+    const saveChanges = async () => {
+        if (!editedName.trim()) {
+            toast.error("Organization name cannot be empty");
+            return;
+        }
+        try {
+            setSaving(true);
+            const res = await axios.put(`${BASEURL}/organization/update/${selectedOrg._id}`, {
+                name: editedName.trim(),
+            });
+            setOrganizations((prev) =>
+                prev.map((org) =>
+                    org._id === selectedOrg._id ? res.data.organization : org
+                )
+            );
+            toast.success(res.data.message);
+            closeModal();
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to update organization");
+        } finally {
+            setSaving(false);
+        }
     };
+
+    // Delete logic
+    const confirmDelete = (org) => {
+        setOrgToDelete(org);
+        setIsDeleteModalOpen(true);
+    };
+
+    const cancelDelete = () => {
+        setOrgToDelete(null);
+        setIsDeleteModalOpen(false);
+    };
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            const res = await axios.delete(`${BASEURL}/organization/delete/${orgToDelete._id}`);
+            setOrganizations((prev) =>
+                prev.filter((org) => org._id !== orgToDelete._id)
+            );
+            toast.success(res.data.message);
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to delete organization");
+        } finally {
+            setDeleting(false);
+            cancelDelete();
+        }
+    };
+
+    if (error) return <p className="text-center mt-4 text-red-600">{error}</p>;
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
@@ -52,27 +102,44 @@ const ListOrganization = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {organizations.map((org) => (
-                            <tr
-                                key={org.id}
-                                className="border-b border-gray-200 hover:bg-blue-50/60 cursor-pointer transition-colors"
-                            >
-                                <td className="py-2 sm:py-3 px-2 sm:px-4">{org.name}</td>
-                                <td className="py-2 sm:py-3 px-2 sm:px-4">
-                                    <div className="flex justify-center gap-2 sm:gap-3">
-                                        <button
-                                            onClick={() => openModal(org)}
-                                            className="rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[3px] transition"
-                                        >
-                                            <Pencil className="text-green-600" size={16} />
-                                        </button>
-                                        <button className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition">
-                                            <Trash className="text-red-600" size={16} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                        {loading
+                            ? [...Array(6)].map((_, i) => (
+                                <tr key={i} className="animate-pulse">
+                                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                                        <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+                                    </td>
+                                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                                        <div className="flex gap-2">
+                                            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+                                            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                            : organizations.map((org) => (
+                                <tr
+                                    key={org._id}
+                                    className="border-b border-gray-200 hover:bg-blue-50/60 cursor-pointer transition-colors"
+                                >
+                                    <td className="py-2 sm:py-3 px-2 sm:px-4">{org.name}</td>
+                                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                                        <div className="flex justify-center gap-2 sm:gap-3">
+                                            <button
+                                                onClick={() => openModal(org)}
+                                                className="rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[3px] transition"
+                                            >
+                                                <Pencil className="text-green-600" size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => confirmDelete(org)}
+                                                className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition"
+                                            >
+                                                <Trash className="text-red-600" size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
                 </table>
             </div>
@@ -97,9 +164,34 @@ const ListOrganization = () => {
                             </button>
                             <button
                                 onClick={saveChanges}
-                                className="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800"
+                                disabled={saving}
+                                className="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800 disabled:bg-blue-400"
                             >
-                                Save
+                                {saving ? "Saving..." : "Save"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
+                        <h2 className="text-lg font-semibold mb-4 text-center">Are you sure you want to delete this organization?</h2>
+                        <div className="flex justify-center gap-4 mt-4">
+                            <button
+                                onClick={cancelDelete}
+                                className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300"
+                            >
+                                {deleting ? "Deleting..." : "Delete"}
                             </button>
                         </div>
                     </div>
