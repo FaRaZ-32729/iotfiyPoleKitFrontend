@@ -116,15 +116,50 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router";
+import { useAuth } from "../contextApi/AuthContext";
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // const handleLogin = async () => {
+    //     if (!email || !password) {
+    //         setError("Email & Password are required");
+    //         return;
+    //     }
+
+    //     try {
+    //         setLoading(true);
+    //         setError("");
+
+    //         const res = await axios.post(
+    //             `${BASEURL}/auth/login`,
+    //             { email, password },
+    //             { withCredentials: true }
+    //         );
+
+    //         // Save token & user data
+    //         localStorage.setItem("token", res.data.token);
+    //         localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    //         navigate("/"); 
+    //     } catch (err) {
+    //         if (err.response) {
+    //             setError(err.response.data.message);
+    //         } else {
+    //             setError("Something went wrong");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -142,11 +177,10 @@ const Login = () => {
                 { withCredentials: true }
             );
 
-            // Save token & user data
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("user", JSON.stringify(res.data.user));
+            // Save user & token in context and localStorage
+            login(res.data.user, res.data.token);
 
-            navigate("/"); 
+            navigate("/");
         } catch (err) {
             if (err.response) {
                 setError(err.response.data.message);
