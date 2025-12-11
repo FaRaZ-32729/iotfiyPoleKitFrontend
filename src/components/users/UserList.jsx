@@ -1,21 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Pencil, Trash } from "lucide-react";
+import axios from "../../axiosConfig";
+import { toast } from "react-toastify";
+import { useAuth } from "../../contextApi/AuthContext";
+import { useOrganizations } from "../../contextApi/OrganizationContext";
+import DeleteConfirmationModal from "../DeleteConfirmationModal";
+import CustomSelect from "../CustomSelect";
 
-const UserList = ({ onEdit, selectedUser }) => {
-    const [users, setUsers] = useState([
-        { id: 1, name: "Alice Johnson", email: "alice@example.com" },
-        { id: 2, name: "Bob Smith", email: "bob@example.com" },
-        { id: 3, name: "Charlie Brown", email: "charlie@example.com" },
-        { id: 4, name: "Diana Prince", email: "diana@example.com" },
-    ]);
+const BASEURL = import.meta.env.VITE_BACKEND_URL;
+
+const UserList = () => {
+    const { token } = useAuth();
+    const { organizations } = useOrganizations();
+
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUserModal, setSelectedUserModal] = useState(null);
-    const [editedName, setEditedName] = useState("");
 
+    // Form fields
+    const [editedName, setEditedName] = useState("");
+    const [editedEmail, setEditedEmail] = useState("");
+    const [editedPassword, setEditedPassword] = useState("");
+    const [editedOrganization, setEditedOrganization] = useState("");
+
+    // Delete confirmation state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Fetch all users except admins
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`${BASEURL}/users/all`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const filteredUsers = res.data.filter((u) => u.role !== "admin");
+            setUsers(filteredUsers);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to fetch users");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    // Edit modal handlers
     const openModal = (user) => {
         setSelectedUserModal(user);
-        setEditedName(user.name);
+        setEditedName(user.name || "");
+        setEditedEmail(user.email || "");
+        setEditedPassword("");
+        setEditedOrganization(user.organization || "");
         setIsModalOpen(true);
     };
 
@@ -23,23 +67,85 @@ const UserList = ({ onEdit, selectedUser }) => {
         setIsModalOpen(false);
         setSelectedUserModal(null);
         setEditedName("");
+        setEditedEmail("");
+        setEditedPassword("");
+        setEditedOrganization("");
     };
 
-    const saveChanges = () => {
-        setUsers((prev) =>
-            prev.map((u) =>
-                u.id === selectedUserModal.id ? { ...u, name: editedName } : u
-            )
-        );
-        closeModal();
+    const saveChanges = async () => {
+        if (!editedName.trim() || !editedEmail.trim()) {
+            toast.error("Name and email are required");
+            return;
+        }
+
+        try {
+            setSaving(true);
+            const payload = {
+                name: editedName.trim(),
+                email: editedEmail.trim(),
+                ...(editedPassword.trim() && { password: editedPassword.trim() }),
+                organization: editedOrganization || undefined,
+            };
+
+            const res = await axios.put(
+                `${BASEURL}/users/update/${selectedUserModal._id}`,
+                payload,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setUsers((prev) =>
+                prev.map((u) => (u._id === selectedUserModal._id ? res.data.user : u))
+            );
+
+            toast.success("User updated successfully");
+            closeModal();
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to update user");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Delete modal handlers
+    const confirmDelete = (user) => {
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+    };
+
+    const cancelDelete = () => {
+        setUserToDelete(null);
+        setIsDeleteModalOpen(false);
+    };
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            await axios.delete(`${BASEURL}/users/delete/${userToDelete._id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            setUsers((prev) => prev.filter((u) => u._id !== userToDelete._id));
+            toast.success("User deleted successfully");
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to delete user");
+        } finally {
+            setDeleting(false);
+            cancelDelete();
+        }
     };
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
-            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">User Management</h1>
+            <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">
+                User Management
+            </h1>
 
             <div className="mb-4">
-                <h2 className="text-center text-gray-800 font-semibold text-lg">User List</h2>
+                <h2 className="text-center text-gray-800 font-semibold text-lg">
+                    User List
+                </h2>
                 <div className="mx-auto mt-2 h-px w-4/5 bg-blue-600/40"></div>
             </div>
 
@@ -47,34 +153,60 @@ const UserList = ({ onEdit, selectedUser }) => {
                 <table className="w-full table-auto text-left">
                     <thead>
                         <tr className="bg-gray-100">
-                            <th className="py-2 px-4 font-bold text-gray-800">Name / Email</th>
+                            <th className="py-2 px-4 font-bold text-gray-800">Name</th>
+                            <th className="py-2 px-4 font-bold text-gray-800 text-center">Status</th>
                             <th className="py-2 px-4 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map((user) => (
-                            <tr
-                                key={user.id}
-                                className="border-b border-gray-200 hover:bg-blue-50/60 cursor-pointer transition-colors"
-                            >
-                                <td className="py-2 sm:py-3 px-2 sm:px-4">
-                                    {user.name} / {user.email}
-                                </td>
-                                <td className="py-2 sm:py-3 px-2 sm:px-4">
-                                    <div className="flex justify-center gap-2 sm:gap-3">
+                        {loading
+                            ? [...Array(4)].map((_, i) => (
+                                <tr key={i} className="animate-pulse border-b border-gray-200">
+                                    <td className="py-2 px-4">
+                                        <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+                                    </td>
+                                    <td className="py-2 px-4">
+                                        <div className="h-5 bg-gray-300 rounded w-1/2 mx-auto"></div>
+                                    </td>
+                                    <td className="py-2 px-4">
+                                        <div className="flex justify-center gap-2">
+                                            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+                                            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                            : users.map((user) => (
+                                <tr
+                                    key={user._id}
+                                    className="border-b border-gray-200 hover:bg-blue-50/60 transition-colors text-sm md:text-base"
+                                >
+                                    <td className="py-2 px-4">{user.name}</td>
+                                    <td className="py-2 px-4 text-center">
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-white text-sm font-medium ${user.isActive ? "bg-green-500/70" : "bg-red-500/70"
+                                                }`}
+                                        >
+                                            {user.isActive ? "Active" : "Inactive"}
+                                        </span>
+                                    </td>
+                                    <td className="py-2 px-4 flex justify-center gap-2">
                                         <button
                                             onClick={() => openModal(user)}
                                             className="rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[3px] transition"
                                         >
                                             <Pencil className="text-green-600" size={16} />
                                         </button>
-                                        <button className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition">
+
+                                        <button
+                                            onClick={() => confirmDelete(user)}
+                                            className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition"
+                                        >
                                             <Trash className="text-red-600" size={16} />
                                         </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
                 </table>
             </div>
@@ -84,12 +216,38 @@ const UserList = ({ onEdit, selectedUser }) => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
                         <h2 className="text-lg font-semibold mb-4">Edit User</h2>
+
                         <input
                             type="text"
                             value={editedName}
                             onChange={(e) => setEditedName(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Name"
+                            className="w-full border border-gray-300 rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+
+                        <input
+                            type="email"
+                            value={editedEmail}
+                            onChange={(e) => setEditedEmail(e.target.value)}
+                            placeholder="Email"
+                            className="w-full border border-gray-300 rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                        <input
+                            type="password"
+                            value={editedPassword}
+                            onChange={(e) => setEditedPassword(e.target.value)}
+                            placeholder="Password"
+                            className="w-full border border-gray-300 rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                        <CustomSelect
+                            value={editedOrganization}
+                            onChange={setEditedOrganization}
+                            placeholder="Select Organization"
+                            options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                        />
+
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={closeModal}
@@ -99,14 +257,23 @@ const UserList = ({ onEdit, selectedUser }) => {
                             </button>
                             <button
                                 onClick={saveChanges}
-                                className="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800"
+                                disabled={saving}
+                                className="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800 disabled:bg-blue-400"
                             >
-                                Save
+                                {saving ? "Saving..." : "Save"}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onCancel={cancelDelete}
+                onConfirm={handleDelete}
+                loading={deleting}
+            />
         </div>
     );
 };
