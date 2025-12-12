@@ -10,7 +10,7 @@ import CustomSelect from "../CustomSelect";
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const UserList = () => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { organizations } = useOrganizations();
 
     const [users, setUsers] = useState([]);
@@ -32,22 +32,60 @@ const UserList = () => {
     const [saving, setSaving] = useState(false);
 
     // Fetch all users except admins
+    // const fetchUsers = async () => {
+    //     try {
+    //         setLoading(true);
+    //         let res;
+
+    //         if (token && user.role === "admin") {
+    //             res = await axios.get("/users/all")
+    //         } else if (token && user.role === "user") {
+    //             res = await axios.get(`/users/${user._id}`)
+    //         }
+    //         console.log("res.data", res?.data);
+    //         console.log("res", res)
+
+
+    //         // const filteredUsers = res.data.filter((u) => u.role !== "admin");
+    //         const filteredUsers = res?.data?.users || res?.data || [];
+    //         console.log(`data ${res.data}`)
+    //         setUsers(filteredUsers);
+    //     } catch (err) {
+    //         console.error(err);
+    //         toast.error(err.response?.data?.message || "Failed to fetch users");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${BASEURL}/users/all`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            let res;
 
-            const filteredUsers = res.data.filter((u) => u.role !== "admin");
+            console.log("user._id", user)
+            console.log("token", token)
+            if (token && user.role === "admin") {
+                res = await axios.get("/users/all", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            }
+            if (token && user.role === "manager") {
+                res = await axios.get(`/users/${user._id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            }
+
+            const filteredUsers = res?.data?.users || res.data || [];
             setUsers(filteredUsers);
         } catch (err) {
             console.error(err);
-            toast.error("Failed to fetch users");
+            toast.error(err.response?.data?.message || "Failed to fetch users");
         } finally {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchUsers();

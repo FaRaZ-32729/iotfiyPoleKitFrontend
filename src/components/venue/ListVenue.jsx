@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import DeleteConfirmationModal from "../DeleteConfirmationModal";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
 import { useVenues } from "../../contextApi/VenueContext";
+import CustomSelect from "../CustomSelect";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -259,7 +260,7 @@ const ListVenue = () => {
                             className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-                        <select
+                        {/* <select
                             value={editedOrg}
                             onChange={(e) => setEditedOrg(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -270,7 +271,13 @@ const ListVenue = () => {
                                     {org.name}
                                 </option>
                             ))}
-                        </select>
+                        </select> */}
+                        <CustomSelect
+                            value={editedOrg}
+                            onChange={ (e) => setEditedOrg(e.target.value)}
+                            placeholder="Select Organization"
+                            options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                        />
 
                         <div className="flex justify-end gap-3">
                             <button

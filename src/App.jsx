@@ -26,7 +26,7 @@ const App = () => {
           <Route path="user" element={<UserManagement />} />
           <Route path="organization" element={<OrganizationManagement />} />
           <Route path="device" element={<DeviceManagement />} />
-          <Route path="*" element={<PageNotFound />} /> {/* Page Not Found */}
+          <Route path="*" element={<PageNotFound />} /> 
         </Route>
       </Routes>
     </>

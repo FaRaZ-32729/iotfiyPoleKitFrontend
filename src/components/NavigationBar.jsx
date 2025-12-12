@@ -61,29 +61,30 @@ const NavigationBar = () => {
                 </div>
 
                 {/* Nav Icons */}
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <div key={item.key} className="relative group w-full flex justify-center space-y-8">
-                            <button
-                                onClick={() => navigate(item.path)}
-                                className={`p-2 rounded-lg hover:bg-blue-500 transition-all ${isActive ? "bg-blue-700" : ""}`}
-                            >
-                                <img
-                                    src={item.icon}
-                                    alt={item.label}
-                                    className="h-6 w-6"
-                                />
-                            </button>
-                            {/* Label on hover (desktop only) */}
-                            <span className="absolute left-full ml-2 px-3 py-1 rounded-md bg-gray-800 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap md:block hidden">
-                                {item.label}
-                            </span>
-                        </div>
-                    );
-                })}
+                <div className="flex-1 flex flex-col items-center justify-center space-y-8">
+                    {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <div key={item.key} className="relative group w-full flex justify-center">
+                                <button
+                                    onClick={() => navigate(item.path)}
+                                    className={`p-2 rounded-lg hover:bg-blue-500 transition-all ${isActive ? "bg-blue-700" : ""}`}
+                                >
+                                    <img
+                                        src={item.icon}
+                                        alt={item.label}
+                                        className="h-6 w-6"
+                                    />
+                                </button>
 
-                
+                                {/* Label (on hover) */}
+                                <span className="absolute left-full ml-2 px-3 py-1 rounded-md bg-gray-800 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap md:block hidden">
+                                    {item.label}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
 
                 {/* Profile Icon */}
                 <div className="mt-auto">

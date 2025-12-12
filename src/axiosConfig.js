@@ -1,5 +1,25 @@
+// import axios from "axios";
+
+// axios.defaults.withCredentials = true;
+
+// export default axios;
+
+
 import axios from "axios";
 
-axios.defaults.withCredentials = true;
+const axiosInstance = axios.create({
+    baseURL: import.meta.env.VITE_BACKEND_URL,
+    withCredentials: true
+});
 
-export default axios;
+// Add token for every request
+axiosInstance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+export default axiosInstance;
+

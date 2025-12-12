@@ -5,6 +5,7 @@ import { useOrganizations } from "../../contextApi/OrganizationContext";
 import { useVenues } from "../../contextApi/VenueContext";
 import axios from "../../axiosConfig";
 import { toast } from "react-toastify";
+import CustomSelect from "../CustomSelect";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -99,18 +100,12 @@ const AddUser = () => {
 
                 {/* Organization for Admin */}
                 {isAdmin && (
-                    <select
+                    <CustomSelect
                         value={organizationId}
                         onChange={(e) => setOrganizationId(e.target.value)}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Select Organization</option>
-                        {organizations?.map((org) => (
-                            <option key={org._id} value={org._id}>
-                                {org.name}
-                            </option>
-                        ))}
-                    </select>
+                        placeholder="Select Organization"
+                        options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                    />
                 )}
 
                 {/* Venues for normal user */}

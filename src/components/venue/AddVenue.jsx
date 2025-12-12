@@ -4,6 +4,7 @@ import axios from "../../axiosConfig";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
+import CustomSelect from "../CustomSelect";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -71,7 +72,7 @@ const AddVenue = () => {
 
                 {/* Organization Select */}
                 <div className="relative">
-                    <select
+                    {/* <select
                         className="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={organization}
                         onChange={(e) => setOrganization(e.target.value)}
@@ -82,7 +83,13 @@ const AddVenue = () => {
                                 {org.name}
                             </option>
                         ))}
-                    </select>
+                    </select> */}
+                    <CustomSelect
+                        value={organization}
+                        onChange={(e) => setOrganization(e.target.value)}
+                        placeholder="Select Organization"
+                        options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                    />
                 </div>
 
                 {/* Save Button */}
