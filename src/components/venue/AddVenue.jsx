@@ -5,11 +5,13 @@ import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
 import CustomSelect from "../CustomSelect";
+import { useAuth } from "../../contextApi/AuthContext";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const AddVenue = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const [name, setName] = useState("");
     const [organization, setOrganization] = useState("");
@@ -71,26 +73,29 @@ const AddVenue = () => {
                 </div>
 
                 {/* Organization Select */}
-                <div className="relative">
-                    {/* <select
-                        className="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={organization}
-                        onChange={(e) => setOrganization(e.target.value)}
-                    >
-                        <option value="">Select Organization</option>
-                        {organizations?.map((org) => (
-                            <option key={org._id} value={org._id}>
-                                {org.name}
-                            </option>
-                        ))}
-                    </select> */}
+                {/* <div className="relative">
                     <CustomSelect
                         value={organization}
                         onChange={(e) => setOrganization(e.target.value)}
                         placeholder="Select Organization"
                         options={organizations.map((org) => ({ label: org.name, value: org._id }))}
                     />
-                </div>
+                </div> */}
+                {user.role === "admin" ? (
+                    <CustomSelect
+                        value={organization}
+                        onChange={(e) => setOrganization(e.target.value)}
+                        placeholder="Select Organization"
+                        options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                    />
+                ) : (
+                    <input
+                        type="text"
+                        value={user.organization}
+                        disabled
+                        className="w-full pl-4 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-xs md:text-base"
+                    />
+                )}
 
                 {/* Save Button */}
                 <button
