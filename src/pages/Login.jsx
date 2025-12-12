@@ -114,9 +114,9 @@
 // export default Login;
 
 import React, { useState } from "react";
-import axios from "axios";
 import { NavLink, useNavigate } from "react-router";
 import { useAuth } from "../contextApi/AuthContext";
+import axios from "../axiosConfig"
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const Login = () => {
@@ -142,8 +142,7 @@ const Login = () => {
 
             const res = await axios.post(
                 `${BASEURL}/auth/login`,
-                { email, password },
-                { withCredentials: true }
+                { email, password }
             );
 
             // Save user & token in context and localStorage

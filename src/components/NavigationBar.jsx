@@ -1,12 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contextApi/AuthContext";
+import LogoutConfirmationModal from "./LogoutConfirmationModal ";
 
 const NavigationBar = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { logout, user } = useAuth();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+
+    const handleLogoutConfirm = async () => {
+        setLoading(true);
+        const success = await logout();
+        setLoading(false);
+
+        if (success) {
+            setShowLogoutModal(false);
+            navigate("/login");
+        }
+    };
 
     // Admin management nav items
-    const navItems = [
+    const allNavItems = [
         { key: "home", label: "Home", path: "/", icon: "/sidebar-images/1.png", blueIcon: "/sidebar-images-blue/1.svg" },
         { key: "organization-management", label: "Organization Management", path: "/organization", icon: "/sidebar-images/2.png", blueIcon: "/sidebar-images-blue/2.png" },
         { key: "venue-management", label: "Venue Management", path: "/venue", icon: "/sidebar-images/4.png", blueIcon: "/sidebar-images-blue/4.png" },
@@ -14,16 +31,30 @@ const NavigationBar = () => {
         { key: "device-management", label: "Device Management", path: "/device", icon: "/sidebar-images/3.png", blueIcon: "/sidebar-images-blue/3.png" },
     ];
 
+    let navItems = [];
+
+    if (user?.role === "admin") {
+        navItems = allNavItems;
+    } else if (user?.role === "manager") {
+        navItems = allNavItems.filter(item =>
+            ["home", "venue-management", "users-management"].includes(item.key)
+        );
+    } else if (user?.role === "user") {
+        navItems = allNavItems.filter(item =>
+            ["home"].includes(item.key)
+        );
+    }
+
     return (
         <>
-            {/* 🔵 MOBILE TOP BAR */}
+            {/* MOBILE TOP BAR */}
             <header className="w-full bg-white shadow-md px-4 py-3 flex justify-between items-center md:hidden relative z-50 rounded-tl-lg rounded-tr-lg">
                 <img src="/logo-half.png" alt="logo" className="h-7" />
-                <img src="/sidebar-images/8.png" alt="profile" className="h-7 w-7" />
+                <img src="/sidebar-images/8.png" alt="profile" className="h-7 w-7" onClick={() => setShowLogoutModal(true)} />
             </header>
 
-            {/* 🔵 DESKTOP LEFT NAV */}
-            <aside className="hidden md:flex flex-col w-20 bg-blue-600 text-white items-center py-6 space-y-8 relative rounded-tr-xl rounded-br-xl">
+            {/* DESKTOP LEFT NAV */}
+            <aside className="hidden md:flex flex-col w-15 bg-blue-600 text-white items-center py-6  relative rounded-tr-xl rounded-br-xl">
                 {/* Logo */}
                 <div className="mb-6">
                     <img src="/logo-half.png" alt="logo" className="h-10 w-auto" />
@@ -33,7 +64,7 @@ const NavigationBar = () => {
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path;
                     return (
-                        <div key={item.key} className="relative group w-full flex justify-center">
+                        <div key={item.key} className="relative group w-full flex justify-center space-y-8">
                             <button
                                 onClick={() => navigate(item.path)}
                                 className={`p-2 rounded-lg hover:bg-blue-500 transition-all ${isActive ? "bg-blue-700" : ""}`}
@@ -52,14 +83,16 @@ const NavigationBar = () => {
                     );
                 })}
 
+                
+
                 {/* Profile Icon */}
                 <div className="mt-auto">
-                    <img src="/sidebar-images/8.png" alt="Profile" className="h-6 w-6 hover:brightness-90 cursor-pointer" />
+                    <img src="/sidebar-images/8.png" alt="Profile" className="h-6 w-6 hover:brightness-90 cursor-pointer" onClick={() => setShowLogoutModal(true)} />
                 </div>
             </aside>
 
             {/* 🔵 MOBILE BOTTOM NAV */}
-            <nav className="fixed bottom-0 left-0 w-full bg-blue-600 shadow-xl py-3 flex justify-around md:hidden z-50 rounded-tl-xl rounded-tr-xl">
+            <nav className="fixed bottom-0 left-0 w-full bg-blue-600 shadow-xl py-1 flex justify-around md:hidden z-50 rounded-tl-xl rounded-tr-xl">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path;
                     return (
@@ -73,6 +106,13 @@ const NavigationBar = () => {
                     );
                 })}
             </nav>
+
+            <LogoutConfirmationModal
+                isOpen={showLogoutModal}
+                onCancel={() => setShowLogoutModal(false)}
+                onConfirm={handleLogoutConfirm}
+                loading={loading}
+            />
         </>
     );
 };
