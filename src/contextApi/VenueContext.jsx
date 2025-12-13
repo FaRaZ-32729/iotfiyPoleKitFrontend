@@ -22,7 +22,7 @@ export const VenueProvider = ({ children }) => {
                 res = await axios.get(`/venue/venue-by-org/${user.organization}`)
                 console.log("data ", res.data.venues)
             }
-            setVenues(res?.data?.venues || []);
+            setVenues(res?.data?.venues || res?.data || []);
             console.log("Venues set:", res?.data?.venues);
         } catch (err) {
             console.error(err);

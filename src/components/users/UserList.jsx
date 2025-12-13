@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Pencil, Trash } from "lucide-react";
 import axios from "../../axiosConfig";
 import { toast } from "react-toastify";
 import { useAuth } from "../../contextApi/AuthContext";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
+import { useUsers } from "../../contextApi/UserContext";
 import DeleteConfirmationModal from "../DeleteConfirmationModal";
 import CustomSelect from "../CustomSelect";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const UserList = () => {
-    const { token, user } = useAuth();
+    const { token } = useAuth();
     const { organizations } = useOrganizations();
-
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { users, loadingUsers, fetchUsers, setUsers } = useUsers();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUserModal, setSelectedUserModal] = useState(null);
@@ -31,65 +30,10 @@ const UserList = () => {
     const [deleting, setDeleting] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // Fetch all users except admins
-    // const fetchUsers = async () => {
-    //     try {
-    //         setLoading(true);
-    //         let res;
-
-    //         if (token && user.role === "admin") {
-    //             res = await axios.get("/users/all")
-    //         } else if (token && user.role === "user") {
-    //             res = await axios.get(`/users/${user._id}`)
-    //         }
-    //         console.log("res.data", res?.data);
-    //         console.log("res", res)
-
-
-    //         // const filteredUsers = res.data.filter((u) => u.role !== "admin");
-    //         const filteredUsers = res?.data?.users || res?.data || [];
-    //         console.log(`data ${res.data}`)
-    //         setUsers(filteredUsers);
-    //     } catch (err) {
-    //         console.error(err);
-    //         toast.error(err.response?.data?.message || "Failed to fetch users");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    const fetchUsers = async () => {
-        try {
-            setLoading(true);
-            let res;
-
-            console.log("user._id", user)
-            console.log("token", token)
-            if (token && user.role === "admin") {
-                res = await axios.get("/users/all", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-            }
-            if (token && user.role === "manager") {
-                res = await axios.get(`/users/${user._id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-            }
-
-            const filteredUsers = res?.data?.users || res.data || [];
-            setUsers(filteredUsers);
-        } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.message || "Failed to fetch users");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
+    // Fetch users from context
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     // Edit modal handlers
     const openModal = (user) => {
@@ -118,6 +62,7 @@ const UserList = () => {
 
         try {
             setSaving(true);
+
             const payload = {
                 name: editedName.trim(),
                 email: editedEmail.trim(),
@@ -132,7 +77,9 @@ const UserList = () => {
             );
 
             setUsers((prev) =>
-                prev.map((u) => (u._id === selectedUserModal._id ? res.data.user : u))
+                prev.map((u) =>
+                    u._id === selectedUserModal._id ? res.data.user : u
+                )
             );
 
             toast.success("User updated successfully");
@@ -159,11 +106,15 @@ const UserList = () => {
     const handleDelete = async () => {
         try {
             setDeleting(true);
+
             await axios.delete(`${BASEURL}/users/delete/${userToDelete._id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            setUsers((prev) => prev.filter((u) => u._id !== userToDelete._id));
+            setUsers((prev) =>
+                prev.filter((u) => u._id !== userToDelete._id)
+            );
+
             toast.success("User deleted successfully");
         } catch (err) {
             console.error(err);
@@ -196,8 +147,9 @@ const UserList = () => {
                             <th className="py-2 px-4 text-center">Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        {loading
+                        {loadingUsers
                             ? [...Array(4)].map((_, i) => (
                                 <tr key={i} className="animate-pulse border-b border-gray-200">
                                     <td className="py-2 px-4">
@@ -222,7 +174,9 @@ const UserList = () => {
                                     <td className="py-2 px-4">{user.name}</td>
                                     <td className="py-2 px-4 text-center">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-white text-sm font-medium ${user.isActive ? "bg-green-500/70" : "bg-red-500/70"
+                                            className={`px-3 py-1 rounded-full text-white text-sm font-medium ${user.isActive
+                                                    ? "bg-green-500/70"
+                                                    : "bg-red-500/70"
                                                 }`}
                                         >
                                             {user.isActive ? "Active" : "Inactive"}
@@ -283,7 +237,10 @@ const UserList = () => {
                             value={editedOrganization}
                             onChange={setEditedOrganization}
                             placeholder="Select Organization"
-                            options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                            options={organizations.map((org) => ({
+                                label: org.name,
+                                value: org._id,
+                            }))}
                         />
 
                         <div className="flex justify-end gap-3">
@@ -305,7 +262,6 @@ const UserList = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onCancel={cancelDelete}

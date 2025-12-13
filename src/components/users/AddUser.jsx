@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Mail, User } from "lucide-react";
+import React, { useState } from "react";
+import { Mail, User, X } from "lucide-react";
 import { useAuth } from "../../contextApi/AuthContext";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
 import { useVenues } from "../../contextApi/VenueContext";
 import axios from "../../axiosConfig";
 import { toast } from "react-toastify";
 import CustomSelect from "../CustomSelect";
+import { useUsers } from "../../contextApi/UserContext";
+import VenueSelectDropdown from "../VenueSelectDropdown";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -13,6 +15,7 @@ const AddUser = () => {
     const { user: loggedInUser, token } = useAuth();
     const { organizations } = useOrganizations();
     const { venues } = useVenues();
+    const { fetchUsers } = useUsers();
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -20,8 +23,19 @@ const AddUser = () => {
     const [selectedVenues, setSelectedVenues] = useState([]);
     const [saving, setSaving] = useState(false);
 
-    // Determine if logged in user is admin or normal user
     const isAdmin = loggedInUser?.role === "admin";
+
+    const handleVenueSelect = (venueId) => {
+        if (!venueId) return;
+
+        setSelectedVenues((prev) =>
+            prev.includes(venueId) ? prev : [...prev, venueId]
+        );
+    };
+
+    const removeVenue = (venueId) => {
+        setSelectedVenues((prev) => prev.filter((id) => id !== venueId));
+    };
 
     const handleSubmit = async () => {
         if (!name.trim() || !email.trim()) {
@@ -46,7 +60,9 @@ const AddUser = () => {
                 name: name.trim(),
                 email: email.trim(),
                 role: "user",
-                ...(isAdmin ? { organizationId } : { venues: selectedVenues }),
+                ...(isAdmin
+                    ? { organizationId }
+                    : { venues: selectedVenues }),
             };
 
             const res = await axios.post(`${BASEURL}/auth/register`, payload, {
@@ -55,11 +71,11 @@ const AddUser = () => {
 
             toast.success(res.data.message);
 
-            // Reset form
             setName("");
             setEmail("");
             setOrganizationId("");
             setSelectedVenues([]);
+            fetchUsers();
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.message || "Failed to create user");
@@ -98,39 +114,26 @@ const AddUser = () => {
                     />
                 </div>
 
-                {/* Organization for Admin */}
+                {/* Organization (Admin only) */}
                 {isAdmin && (
                     <CustomSelect
                         value={organizationId}
-                        onChange={(e) => setOrganizationId(e.target.value)}
+                        onChange={(val) => setOrganizationId(val)}
                         placeholder="Select Organization"
-                        options={organizations.map((org) => ({ label: org.name, value: org._id }))}
+                        options={organizations.map((org) => ({
+                            label: org.name,
+                            value: org._id,
+                        }))}
                     />
                 )}
 
-                {/* Venues for normal user */}
+                {/* Venues (Normal user) */}
                 {!isAdmin && (
-                    <div className="flex flex-col gap-2">
-                        <label className="font-medium">Assign Venues:</label>
-                        {venues?.map((v) => (
-                            <label key={v._id} className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    value={v._id}
-                                    checked={selectedVenues.includes(v._id)}
-                                    onChange={(e) => {
-                                        const checked = e.target.checked;
-                                        setSelectedVenues((prev) =>
-                                            checked
-                                                ? [...prev, v._id]
-                                                : prev.filter((id) => id !== v._id)
-                                        );
-                                    }}
-                                />
-                                <span>{v.name}</span>
-                            </label>
-                        ))}
-                    </div>
+                    <VenueSelectDropdown
+                        venues={venues}
+                        selectedVenues={selectedVenues}
+                        onChange={setSelectedVenues}
+                    />
                 )}
 
                 <button

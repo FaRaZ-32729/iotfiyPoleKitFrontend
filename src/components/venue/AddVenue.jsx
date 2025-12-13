@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box } from "lucide-react";
 import axios from "../../axiosConfig";
 import { useNavigate } from "react-router";
@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
 import CustomSelect from "../CustomSelect";
 import { useAuth } from "../../contextApi/AuthContext";
+import { useVenues } from "../../contextApi/VenueContext";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -18,6 +19,14 @@ const AddVenue = () => {
     const [loading, setLoading] = useState(false);
 
     const { organizations, fetchOrganizations } = useOrganizations();
+    const { fetchVenues } = useVenues();
+
+
+    useEffect(() => {
+        if (user.role !== "admin") {
+            setOrganization(user.organization);
+        }
+    }, [user]);
 
     const handleSave = async () => {
         if (!name.trim()) return toast.error("Venue name is required");
@@ -35,6 +44,7 @@ const AddVenue = () => {
 
             // Refresh list
             fetchOrganizations();
+            fetchVenues();
 
             setTimeout(() => {
                 navigate("/venue");
