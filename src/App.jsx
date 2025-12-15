@@ -10,6 +10,8 @@ import DeviceManagement from "./pages/DeviceManagement";
 import PageNotFound from "./components/PageNotFound";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import SetupPassword from "./components/auth/SetupPassword";
+import VerifyOtp from "./components/auth/VerifyOtp";
 
 const App = () => {
   return (
@@ -18,6 +20,8 @@ const App = () => {
       <Routes>
         {/* Public Route */}
         <Route path="/login" element={<Login />} />
+        <Route path="/setup-password/:token" element={<SetupPassword />} />
+        <Route path="/verify-otp/:token" element={<VerifyOtp />} />
 
         {/* Protected / Layout Routes */}
         <Route element={<AppLayout />}>
@@ -26,7 +30,7 @@ const App = () => {
           <Route path="user" element={<UserManagement />} />
           <Route path="organization" element={<OrganizationManagement />} />
           <Route path="device" element={<DeviceManagement />} />
-          <Route path="*" element={<PageNotFound />} /> 
+          <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
     </>
