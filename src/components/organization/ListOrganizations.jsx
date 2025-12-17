@@ -87,7 +87,7 @@ const ListOrganization = () => {
         }
     };
 
-    if (error) return <p className="text-center mt-4 text-red-600">{error}</p>;
+    // if (error) return <p className="text-center mt-4 text-red-600">{error}</p>;
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">

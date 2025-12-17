@@ -12,26 +12,64 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SetupPassword from "./components/auth/SetupPassword";
 import VerifyOtp from "./components/auth/VerifyOtp";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const App = () => {
+  // return (
+  //   <>
+  //     <ToastContainer position="top-right" autoClose={3000} />
+  //     <Routes>
+  //       {/* Public Route */}
+  //       <Route path="/login" element={<Login />} />
+  //       <Route path="/setup-password/:token" element={<SetupPassword />} />
+  //       <Route path="/verify-otp/:token" element={<VerifyOtp />} />
+
+  //       {/* Protected / Layout Routes */}
+  //       <Route element={<AppLayout />}>
+  //         <Route index element={<Home />} />
+  //         <Route path="venue" element={<Venue />} />
+  //         <Route path="user" element={<UserManagement />} />
+  //         <Route path="organization" element={<OrganizationManagement />} />
+  //         <Route path="device" element={<DeviceManagement />} />
+  //         <Route path="*" element={<PageNotFound />} />
+  //       </Route>
+  //     </Routes>
+  //   </>
+  // );
+
+
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
-        {/* Public Route */}
+        {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/setup-password/:token" element={<SetupPassword />} />
         <Route path="/verify-otp/:token" element={<VerifyOtp />} />
 
-        {/* Protected / Layout Routes */}
-        <Route element={<AppLayout />}>
-          <Route index element={<Home />} /> {/* default / */}
-          <Route path="venue" element={<Venue />} />
-          <Route path="user" element={<UserManagement />} />
-          <Route path="organization" element={<OrganizationManagement />} />
-          <Route path="device" element={<DeviceManagement />} />
-          <Route path="*" element={<PageNotFound />} />
+        {/* Home - All logged users */}
+        <Route element={<ProtectedRoute allowedRoles={["admin", "manager", "user"]} />}>
+          <Route element={<AppLayout />}>
+            <Route index element={<Home />} />
+          </Route>
         </Route>
+
+        {/* Admin + Manager */}
+        <Route element={<ProtectedRoute allowedRoles={["admin", "manager"]} />}>
+          <Route element={<AppLayout />}>
+            <Route path="venue" element={<Venue />} />
+            <Route path="user" element={<UserManagement />} />
+            <Route path="device" element={<DeviceManagement />} />
+          </Route>
+        </Route>
+
+        {/* Admin only */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route element={<AppLayout />}>
+            <Route path="organization" element={<OrganizationManagement />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </>
   );
