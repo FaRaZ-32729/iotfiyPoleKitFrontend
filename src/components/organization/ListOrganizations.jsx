@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pencil, Trash } from "lucide-react";
 import { useOrganizations } from "../../contextApi/OrganizationContext";
 import axios from "../../axiosConfig";
@@ -8,7 +8,7 @@ import DeleteConfirmationModal from "../DeleteConfirmationModal";
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const ListOrganization = () => {
-    const { organizations, setOrganizations, loading, error } = useOrganizations();
+    const { fetchOrganizations, organizations, setOrganizations, loading, error } = useOrganizations();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [editedName, setEditedName] = useState("");
@@ -29,6 +29,10 @@ const ListOrganization = () => {
         setSelectedOrg(null);
         setEditedName("");
     };
+
+    useEffect(() => {
+        fetchOrganizations();
+    }, []);
 
     const saveChanges = async () => {
         if (!editedName.trim()) {
@@ -109,7 +113,7 @@ const ListOrganization = () => {
                     <tbody>
                         {loading
                             ? [...Array(6)].map((_, i) => (
-                                <tr key={i} className="animate-pulse">
+                                <tr key={i} className="animate-pulse border-b border-gray-200">
                                     <td className="py-2 sm:py-3 px-2 sm:px-4">
                                         <div className="h-5 bg-gray-300 rounded w-3/4"></div>
                                     </td>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pencil, Trash } from "lucide-react";
 import axios from "../../axiosConfig";
 import { toast } from "react-toastify";
@@ -10,7 +10,7 @@ import CustomSelect from "../CustomSelect";
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const ListVenue = () => {
-    const { venues, loadingVenues, setVenues } = useVenues();
+    const { venues, loadingVenues, setVenues, fetchVenues } = useVenues();
     const { organizations } = useOrganizations();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,9 +88,11 @@ const ListVenue = () => {
                 `${BASEURL}/venue/delete/${venueToDelete._id}`
             );
 
-            setVenues((prev) =>
-                prev.filter((v) => v._id !== venueToDelete._id)
-            );
+            // setVenues((prev) =>
+            //     prev.filter((v) => v._id !== venueToDelete._id)
+            // );
+
+            await fetchVenues();
 
             toast.success(res.data.message);
         } catch (err) {
@@ -103,6 +105,10 @@ const ListVenue = () => {
             cancelDelete();
         }
     };
+
+    useEffect(() => {
+        fetchVenues();
+    }, [])
 
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
@@ -201,7 +207,7 @@ const ListVenue = () => {
                         </tr>
                     </thead>
 
-                    <tbody>
+                    {/* <tbody>
                         {loadingVenues
                             ? [...Array(6)].map((_, i) => (
                                 <tr key={i} className="animate-pulse">
@@ -242,7 +248,55 @@ const ListVenue = () => {
                                     </td>
                                 </tr>
                             ))}
+                    </tbody> */}
+
+                    <tbody>
+                        {loadingVenues
+                            ? [...Array(6)].map((_, i) => (
+                                <tr
+                                    key={i}
+                                    className="animate-pulse border-b border-gray-200"
+                                >
+                                    <td className="py-2 px-4">
+                                        <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+                                    </td>
+
+                                    <td className="py-2 px-4">
+                                        <div className="flex justify-center gap-2">
+                                            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+                                            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                            : venues.map((venue) => (
+                                <tr
+                                    key={venue._id}
+                                    className="border-b border-gray-200 hover:bg-blue-50/60 cursor-pointer transition-colors"
+                                >
+                                    <td className="py-2 px-4">{venue.name}</td>
+
+                                    <td className="py-2 px-4">
+                                        <div className="flex justify-center gap-2 sm:gap-3">
+                                            <button
+                                                onClick={() => openModal(venue)}
+                                                className="rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[3px] transition"
+                                            >
+                                                <Pencil className="text-green-600" size={16} />
+                                            </button>
+
+                                            <button
+                                                onClick={() => confirmDelete(venue)}
+                                                className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition"
+                                            >
+                                                <Trash className="text-red-600" size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
+
                 </table>
             </div>
 
@@ -274,7 +328,7 @@ const ListVenue = () => {
                         </select> */}
                         <CustomSelect
                             value={editedOrg}
-                            onChange={ (e) => setEditedOrg(e.target.value)}
+                            onChange={(e) => setEditedOrg(e.target.value)}
                             placeholder="Select Organization"
                             options={organizations.map((org) => ({ label: org.name, value: org._id }))}
                         />

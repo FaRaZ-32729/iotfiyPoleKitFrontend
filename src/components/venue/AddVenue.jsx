@@ -42,6 +42,12 @@ const AddVenue = () => {
 
             toast.success(res.data.message || "Venue created successfully");
 
+            //reset input values
+            setName("");
+            if (user.role === "admin") {
+                setOrganization("");
+            }
+
             // Refresh list
             fetchOrganizations();
             fetchVenues();
@@ -94,7 +100,7 @@ const AddVenue = () => {
                 {user.role === "admin" ? (
                     <CustomSelect
                         value={organization}
-                        onChange={(e) => setOrganization(e.target.value)}
+                        onChange={(val) => setOrganization(val)}
                         placeholder="Select Organization"
                         options={organizations.map((org) => ({ label: org.name, value: org._id }))}
                     />
