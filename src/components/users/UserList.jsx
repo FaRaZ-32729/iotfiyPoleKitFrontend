@@ -7,13 +7,15 @@ import { useOrganizations } from "../../contextApi/OrganizationContext";
 import { useUsers } from "../../contextApi/UserContext";
 import DeleteConfirmationModal from "../DeleteConfirmationModal";
 import CustomSelect from "../CustomSelect";
+import { useStatus } from "../../contextApi/StatusContext";
 
 const BASEURL = import.meta.env.VITE_BACKEND_URL;
 
 const UserList = () => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { organizations } = useOrganizations();
     const { users, loadingUsers, fetchUsers, setUsers } = useUsers();
+    const { updateUserStatus, updating } = useStatus();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUserModal, setSelectedUserModal] = useState(null);
@@ -29,6 +31,12 @@ const UserList = () => {
     const [userToDelete, setUserToDelete] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    // status state
+    const [statusModalOpen, setStatusModalOpen] = useState(false);
+    const [activationModalOpen, setActivationModalOpen] = useState(false);
+    const [statusUser, setStatusUser] = useState(null);
+    const [suspensionReason, setSuspensionReason] = useState("");
 
     // Fetch users from context
     useEffect(() => {
@@ -125,6 +133,58 @@ const UserList = () => {
         }
     };
 
+    const handleStatusClick = (user) => {
+        if (user.isActive) {
+            setStatusUser(user);
+            setSuspensionReason("");
+            setStatusModalOpen(true);
+        } else {
+            setStatusUser(user);
+            setActivationModalOpen(true);
+        }
+    };
+
+    const deactivateUser = async () => {
+        if (!suspensionReason.trim()) {
+            toast.error("Suspension reason is required");
+            return;
+        }
+
+        try {
+            const updatedUser = await updateUserStatus(
+                statusUser._id,
+                false,
+                suspensionReason
+            );
+
+            setUsers((prev) =>
+                prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
+            );
+
+            toast.success("User deactivated");
+            setStatusModalOpen(false);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to update status");
+        }
+    };
+
+    const activateUser = async () => {
+        try {
+            const updatedUser = await updateUserStatus(statusUser._id, true);
+
+            setUsers((prev) =>
+                prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
+            );
+
+            toast.success("User activated");
+            setActivationModalOpen(false);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to update status");
+        }
+    };
+
+
+
     return (
         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
             <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">
@@ -143,7 +203,11 @@ const UserList = () => {
                     <thead>
                         <tr className="bg-gray-100">
                             <th className="py-2 px-4 font-bold text-gray-800">Name</th>
-                            <th className="py-2 px-4 font-bold text-gray-800 text-center">Status</th>
+                            {
+                                loadingUsers?.role === "admin" && (
+                                    <th className="py-2 px-4 font-bold text-gray-800 text-center">Status</th>
+                                )
+                            }
                             <th className="py-2 px-4 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -166,32 +230,44 @@ const UserList = () => {
                                     </td>
                                 </tr>
                             ))
-                            : users.map((user) => (
+                            : users.map((u) => (
                                 <tr
-                                    key={user._id}
+                                    key={u._id}
                                     className="border-b border-gray-200 hover:bg-blue-50/60 transition-colors text-sm md:text-base"
                                 >
-                                    <td className="py-2 px-4">{user.name}</td>
-                                    <td className="py-2 px-4 text-center">
+                                    <td className="py-2 px-4">{u.name}</td>
+                                    {/* <td className="py-2 px-4 text-center">
                                         <span
                                             className={`px-3 py-1 rounded-full text-white text-sm font-medium ${user.isActive
-                                                    ? "bg-green-500/70"
-                                                    : "bg-red-500/70"
+                                                ? "bg-green-500/70"
+                                                : "bg-red-500/70"
                                                 }`}
                                         >
                                             {user.isActive ? "Active" : "Inactive"}
                                         </span>
-                                    </td>
+                                    </td> */}
+                                    {user?.role === "admin" && (
+                                        <td className="py-2 px-4 text-center">
+                                            <span
+                                                onClick={() => handleStatusClick(u)}
+                                                className={`px-3 py-1 rounded-full text-white text-sm font-medium cursor-pointer ${u.isActive ? "bg-green-500/70" : "bg-red-500/70"
+                                                    }`}
+                                            >
+                                                {u.isActive ? "Active" : "Inactive"}
+                                            </span>
+                                        </td>
+                                    )}
+
                                     <td className="py-2 px-4 flex justify-center gap-2">
                                         <button
-                                            onClick={() => openModal(user)}
+                                            onClick={() => openModal(u)}
                                             className="rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[3px] transition"
                                         >
                                             <Pencil className="text-green-600" size={16} />
                                         </button>
 
                                         <button
-                                            onClick={() => confirmDelete(user)}
+                                            onClick={() => confirmDelete(u)}
                                             className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition"
                                         >
                                             <Trash className="text-red-600" size={16} />
@@ -261,6 +337,67 @@ const UserList = () => {
                     </div>
                 </div>
             )}
+            {/* Deactivation Modal */}
+            {statusModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
+                        <h2 className="text-lg font-semibold mb-3">Deactivate User</h2>
+
+                        <textarea
+                            value={suspensionReason}
+                            onChange={(e) => setSuspensionReason(e.target.value)}
+                            placeholder="Enter suspension reason"
+                            className="w-full border border-gray-300 rounded-md p-2 mb-4"
+                            rows={4}
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setStatusModalOpen(false)}
+                                className="px-4 py-2 border rounded-md"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={deactivateUser}
+                                disabled={updating}
+                                className="px-4 py-2 bg-red-600 text-white rounded-md"
+                            >
+                                {updating ? "Updating..." : "Deactivate"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Activation Confirmation Modal */}
+            {activationModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
+                        <h2 className="text-lg font-semibold mb-4">
+                            Activate this user?
+                        </h2>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setActivationModalOpen(false)}
+                                className="px-4 py-2 border rounded-md"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={activateUser}
+                                disabled={updating}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md"
+                            >
+                                {updating ? "Updating..." : "Activate"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
