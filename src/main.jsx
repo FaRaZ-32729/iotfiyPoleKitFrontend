@@ -8,6 +8,7 @@ import { VenueProvider } from './contextApi/VenueContext.jsx'
 import { AuthProvider } from './contextApi/AuthContext.jsx'
 import { UserProvider } from './contextApi/UserContext.jsx'
 import { StatusProvider } from './contextApi/StatusContext.jsx'
+import { DeviceProvider } from './contextApi/DeviceContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -17,7 +18,9 @@ createRoot(document.getElementById('root')).render(
           <StatusProvider>
             <OrganizationProvider>
               <VenueProvider>
-                <App />
+                <DeviceProvider>
+                  <App />
+                </DeviceProvider>
               </VenueProvider>
             </OrganizationProvider>
           </StatusProvider>

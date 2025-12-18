@@ -204,7 +204,7 @@ const UserList = () => {
                         <tr className="bg-gray-100">
                             <th className="py-2 px-4 font-bold text-gray-800">Name</th>
                             {
-                                loadingUsers?.role === "admin" && (
+                                user?.role === "admin" && (
                                     <th className="py-2 px-4 font-bold text-gray-800 text-center">Status</th>
                                 )
                             }
