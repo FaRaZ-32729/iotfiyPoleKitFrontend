@@ -8,11 +8,13 @@ import { useOrganizations } from "../../contextApi/OrganizationContext";
 import { useVenues } from "../../contextApi/VenueContext";
 import CustomSelect from "../CustomSelect";
 import MapPicker from "./MapPicker";
+import VenueDropdown from "../customDropdowns/VenueDropdown.jsx";
+import OrgDropdown from "../customDropdowns/OrgDropdown";
 
 const ListDevice = () => {
     const { devices, setDevices, fetchDevices, loading } = useDevices();
     const { organizations } = useOrganizations();
-    const { venues } = useVenues();
+    const { fetchVenuesByOrg } = useVenues();
     const [isVenueDropdownOpen, setIsVenueDropdownOpen] = useState(false);
     const [venueSearch, setVenueSearch] = useState("");
     const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
@@ -67,6 +69,31 @@ const ListDevice = () => {
 
     /* ================= EDIT ================= */
 
+    // const handleOrgChange = async (e) => {
+    //     const selectedOrgId = e.target.value;
+
+    //     setFormData((prev) => ({
+    //         ...prev,
+    //         orgId: selectedOrgId,
+    //         venueId: "",
+    //     }));
+
+    //     if (!selectedOrgId) {
+    //         setFilteredVenues([]);
+    //         return;
+    //     }
+
+    //     try {
+    //         // Call API to fetch venues by organization
+    //         const res = await axios.get(`/venue/venue-by-org/${selectedOrgId}`);
+    //         setFilteredVenues(res.data.venues || []);
+    //     } catch (err) {
+    //         console.error("Failed to fetch venues:", err);
+    //         toast.error(err.response?.data?.message || "Failed to fetch venues");
+    //         setFilteredVenues([]);
+    //     }
+    // };
+
     const handleOrgChange = async (e) => {
         const selectedOrgId = e.target.value;
 
@@ -76,23 +103,10 @@ const ListDevice = () => {
             venueId: "",
         }));
 
-        if (!selectedOrgId) {
-            setFilteredVenues([]);
-            return;
-        }
-
-        try {
-            // Call API to fetch venues by organization
-            const res = await axios.get(`/venue/venue-by-org/${selectedOrgId}`);
-            setFilteredVenues(res.data.venues || []);
-        } catch (err) {
-            console.error("Failed to fetch venues:", err);
-            toast.error(err.response?.data?.message || "Failed to fetch venues");
-            setFilteredVenues([]);
-        }
+        // Fetch filtered venues using context function
+        const venues = await fetchVenuesByOrg(selectedOrgId);
+        setFilteredVenues(venues);
     };
-
-
 
     const openModal = async (device) => {
         setSelectedDevice(device);
@@ -297,7 +311,7 @@ const ListDevice = () => {
             </div>
 
             {/* ================= EDIT MODAL ================= */}
-            {isModalOpen && (
+            {/* {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
                         <h2 className="text-lg font-semibold mb-4">Edit Device</h2>
@@ -311,7 +325,7 @@ const ListDevice = () => {
                                 className="w-full border rounded-md p-2"
                             />
 
-                            {/* Custom Organization Dropdown */}
+                            
                             <div className="relative w-full mb-3" ref={orgDropdownRef}>
                                 <div
                                     onClick={() => setIsOrgDropdownOpen((prev) => !prev)}
@@ -365,7 +379,7 @@ const ListDevice = () => {
                                     </div>
                                 )}
                             </div>
-                            {/* Custom venue Dropdown */}
+                            
                             <div className="relative w-full mb-3" ref={venueDropdownRef}>
                                 <div
                                     onClick={() => setIsVenueDropdownOpen((prev) => !prev)}
@@ -439,6 +453,59 @@ const ListDevice = () => {
                                 onClick={closeModal}
                                 className="px-4 py-2 border rounded-md"
                             >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={saveChanges}
+                                disabled={saving}
+                                className="px-4 py-2 bg-blue-700 text-white rounded-md disabled:bg-blue-400"
+                            >
+                                {saving ? "Saving..." : "Save"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )} */}
+
+
+            {/* ================= EDIT MODAL ================= */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
+                        <h2 className="text-lg font-semibold mb-4">Edit Device</h2>
+
+                        <div className="space-y-3">
+                            <input
+                                name="deviceId"
+                                value={formData.deviceId}
+                                onChange={handleChange}
+                                placeholder="Device ID"
+                                className="w-full border rounded-md p-2"
+                            />
+
+                            <OrgDropdown
+                                organizations={organizations}
+                                formData={formData}
+                                handleOrgChange={handleOrgChange}
+                            />
+
+                            <VenueDropdown
+                                filteredVenues={filteredVenues}
+                                formData={formData}
+                                setFormData={setFormData}
+                                selectedDevice={selectedDevice}
+                            />
+
+                            <button
+                                onClick={() => setShowMap(true)}
+                                className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 px-4 rounded-md"
+                            >
+                                Select Location on Map
+                            </button>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-4">
+                            <button onClick={closeModal} className="px-4 py-2 border rounded-md">
                                 Cancel
                             </button>
                             <button
