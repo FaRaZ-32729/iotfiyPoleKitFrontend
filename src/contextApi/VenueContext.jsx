@@ -18,12 +18,11 @@ export const VenueProvider = ({ children }) => {
             setLoadingVenues(true);
             if (token && user.role === "admin") {
                 res = await axios.get("/venue/all");
+                setVenues(res?.data || []);
             } else if (token && user.role === "manager") {
                 res = await axios.get(`/venue/venue-by-org/${user.organization}`)
-                console.log("data ", res.data.venues)
+                setVenues(res?.data?.venues || []);
             }
-            setVenues(res?.data?.venues || res?.data || []);
-            console.log("Venues set:", res?.data?.venues);
         } catch (err) {
             console.error(err);
             toast.error("Failed to load venues");

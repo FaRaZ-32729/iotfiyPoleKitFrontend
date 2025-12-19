@@ -1,128 +1,43 @@
-// import React, { useState } from "react";
-// import { Pencil, Trash } from "lucide-react";
-
-// const ListDevice = () => {
-//     const [devices, setDevices] = useState([
-//         { id: 1, deviceId: "Device001" },
-//         { id: 2, deviceId: "Device002" },
-//         { id: 3, deviceId: "Device003" },
-//     ]);
-
-//     const [isModalOpen, setIsModalOpen] = useState(false);
-//     const [selectedDevice, setSelectedDevice] = useState(null);
-//     const [editedName, setEditedName] = useState("");
-
-//     const openModal = (device) => {
-//         setSelectedDevice(device);
-//         setEditedName(device.deviceId);
-//         setIsModalOpen(true);
-//     };
-
-//     const closeModal = () => {
-//         setIsModalOpen(false);
-//         setSelectedDevice(null);
-//         setEditedName("");
-//     };
-
-//     const saveChanges = () => {
-//         setDevices((prev) =>
-//             prev.map((d) => (d.id === selectedDevice.id ? { ...d, deviceId: editedName } : d))
-//         );
-//         closeModal();
-//     };
-
-//     return (
-//         <div className="bg-white border border-gray-300 rounded-xl shadow-md w-full h-full p-4 flex flex-col">
-//             <h1 className="text-gray-800 font-semibold text-xl mb-4 hidden md:block">Device Management</h1>
-
-//             <div className="mb-4">
-//                 <h2 className="text-center text-gray-800 font-semibold text-lg">Device List</h2>
-//                 <div className="mx-auto mt-2 h-px w-4/5 bg-blue-600/40"></div>
-//             </div>
-
-//             <div className="overflow-x-auto overflow-y-auto flex-1">
-//                 <table className="w-full table-auto text-left">
-//                     <thead>
-//                         <tr className="bg-gray-100">
-//                             <th className="py-2 px-4 font-bold text-gray-800">Device ID</th>
-//                             <th className="py-2 px-4 text-center">Actions</th>
-//                         </tr>
-//                     </thead>
-//                     <tbody>
-//                         {devices.map((device) => (
-//                             <tr
-//                                 key={device.id}
-//                                 className="border-b border-gray-200 hover:bg-blue-50/60 cursor-pointer transition-colors"
-//                             >
-//                                 <td className="py-2 sm:py-3 px-2 sm:px-4">{device.deviceId}</td>
-//                                 <td className="py-2 sm:py-3 px-2 sm:px-4">
-//                                     <div className="flex justify-center gap-2 sm:gap-3">
-//                                         <button
-//                                             onClick={() => openModal(device)}
-//                                             className="rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[3px] transition"
-//                                         >
-//                                             <Pencil className="text-green-600" size={16} />
-//                                         </button>
-//                                         <button className="rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[3px] transition">
-//                                             <Trash className="text-red-600" size={16} />
-//                                         </button>
-//                                     </div>
-//                                 </td>
-//                             </tr>
-//                         ))}
-//                     </tbody>
-//                 </table>
-//             </div>
-
-//             {/* Edit Modal */}
-//             {isModalOpen && (
-//                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-//                     <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
-//                         <h2 className="text-lg font-semibold mb-4">Edit Device</h2>
-//                         <input
-//                             type="text"
-//                             value={editedName}
-//                             onChange={(e) => setEditedName(e.target.value)}
-//                             className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                         />
-//                         <div className="flex justify-end gap-3">
-//                             <button
-//                                 onClick={closeModal}
-//                                 className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
-//                             >
-//                                 Cancel
-//                             </button>
-//                             <button
-//                                 onClick={saveChanges}
-//                                 className="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800"
-//                             >
-//                                 Save
-//                             </button>
-//                         </div>
-//                     </div>
-//                 </div>
-//             )}
-//         </div>
-//     );
-// };
-
-// export default ListDevice;
-
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Pencil, Trash } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "../../axiosConfig";
 import { useDevices } from "../../contextApi/DeviceContext";
 import DeleteConfirmationModal from "../DeleteConfirmationModal";
+import { useOrganizations } from "../../contextApi/OrganizationContext";
+import { useVenues } from "../../contextApi/VenueContext";
+import CustomSelect from "../CustomSelect";
+import MapPicker from "./MapPicker";
 
 const ListDevice = () => {
     const { devices, setDevices, fetchDevices, loading } = useDevices();
+    const { organizations } = useOrganizations();
+    const { venues } = useVenues();
+    const [isVenueDropdownOpen, setIsVenueDropdownOpen] = useState(false);
+    const [venueSearch, setVenueSearch] = useState("");
+    const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+    const [showMap, setShowMap] = useState(false);
+    const [orgSearch, setOrgSearch] = useState("");
+    const orgDropdownRef = useRef(null);
+    const venueDropdownRef = useRef(null);
+
+
+
+
+    const [filteredVenues, setFilteredVenues] = useState([]);
+
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDevice, setSelectedDevice] = useState(null);
-    const [editedDeviceId, setEditedDeviceId] = useState("");
     const [saving, setSaving] = useState(false);
+    const [formData, setFormData] = useState({
+        deviceId: "",
+        orgId: "",
+        venueId: "",
+        latitude: "",
+        longitude: "",
+    });
+
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deviceToDelete, setDeviceToDelete] = useState(null);
@@ -132,32 +47,121 @@ const ListDevice = () => {
         fetchDevices();
     }, []);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (orgDropdownRef.current && !orgDropdownRef.current.contains(event.target)) {
+                setIsOrgDropdownOpen(false);
+            }
+            if (venueDropdownRef.current && !venueDropdownRef.current.contains(event.target)) {
+                setIsVenueDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+
     /* ================= EDIT ================= */
 
-    const openModal = (device) => {
+    const handleOrgChange = async (e) => {
+        const selectedOrgId = e.target.value;
+
+        setFormData((prev) => ({
+            ...prev,
+            orgId: selectedOrgId,
+            venueId: "",
+        }));
+
+        if (!selectedOrgId) {
+            setFilteredVenues([]);
+            return;
+        }
+
+        try {
+            // Call API to fetch venues by organization
+            const res = await axios.get(`/venue/venue-by-org/${selectedOrgId}`);
+            setFilteredVenues(res.data.venues || []);
+        } catch (err) {
+            console.error("Failed to fetch venues:", err);
+            toast.error(err.response?.data?.message || "Failed to fetch venues");
+            setFilteredVenues([]);
+        }
+    };
+
+
+
+    const openModal = async (device) => {
         setSelectedDevice(device);
-        setEditedDeviceId(device.deviceId);
+
+        const orgId = device.orgId || (device.venue?.organization?._id || device.venue?.organization);
+        const venueId = device.venue?._id || device.venue || "";
+
+        setFormData({
+            deviceId: device.deviceId || "",
+            orgId: orgId || "",
+            venueId: venueId,
+            latitude: device.latitude ?? "",
+            longitude: device.longitude ?? "",
+        });
+
+        // fetch venues for this org to populate dropdown
+        if (orgId) {
+            try {
+                const res = await axios.get(`/venue/venue-by-org/${orgId}`);
+                setFilteredVenues(res.data.venues || []);
+            } catch (err) {
+                console.error(err);
+                setFilteredVenues([]);
+            }
+        } else {
+            setFilteredVenues([]);
+        }
+
         setIsModalOpen(true);
     };
+
 
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedDevice(null);
-        setEditedDeviceId("");
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const saveChanges = async () => {
-        if (!editedDeviceId.trim()) {
+        if (!formData.deviceId.trim()) {
             toast.error("Device ID cannot be empty");
             return;
         }
 
         try {
             setSaving(true);
-            const res = await axios.put(
-                `/device/update/${selectedDevice._id}`,
-                { deviceId: editedDeviceId.trim() }
-            );
+
+            const payload = {
+                deviceId: formData.deviceId.trim() || selectedDevice.deviceId,
+                orgId: formData.orgId || selectedDevice.orgId,
+                venueId: formData.venueId || selectedDevice.venue?._id,
+                latitude:
+                    formData.latitude !== ""
+                        ? Number(formData.latitude)
+                        : selectedDevice.latitude,
+                longitude:
+                    formData.longitude !== ""
+                        ? Number(formData.longitude)
+                        : selectedDevice.longitude,
+            };
+
+            const res = await axios.put(`/device/update/${selectedDevice._id}`, payload);
 
             setDevices((prev) =>
                 prev.map((d) =>
@@ -174,6 +178,7 @@ const ListDevice = () => {
             setSaving(false);
         }
     };
+
 
     /* ================= DELETE ================= */
 
@@ -295,31 +300,151 @@ const ListDevice = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">
-                            Edit Device
-                        </h2>
+                        <h2 className="text-lg font-semibold mb-4">Edit Device</h2>
 
-                        <input
-                            type="text"
-                            value={editedDeviceId}
-                            onChange={(e) =>
-                                setEditedDeviceId(e.target.value)
-                            }
-                            className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="space-y-3">
+                            <input
+                                name="deviceId"
+                                value={formData.deviceId}
+                                onChange={handleChange}
+                                placeholder="Device ID"
+                                className="w-full border rounded-md p-2"
+                            />
 
-                        <div className="flex justify-end gap-3">
+                            {/* Custom Organization Dropdown */}
+                            <div className="relative w-full mb-3" ref={orgDropdownRef}>
+                                <div
+                                    onClick={() => setIsOrgDropdownOpen((prev) => !prev)}
+                                    className="border border-gray-300 rounded-md p-2 cursor-pointer flex justify-between items-center"
+                                >
+                                    <span>
+                                        {formData.orgId
+                                            ? organizations.find((org) => org._id === formData.orgId)?.name
+                                            : "Select Organization"}
+                                    </span>
+                                    <svg
+                                        className={`w-4 h-4 transition-transform ${isOrgDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+
+                                {isOrgDropdownOpen && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg  max-h-23 md:max-h-30 overflow-y-auto">
+                                        <input
+                                            type="text"
+                                            placeholder="Search..."
+                                            value={orgSearch}
+                                            onChange={(e) => setOrgSearch(e.target.value)}
+                                            className="w-full p-2 border-b border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+
+                                        {organizations
+                                            .filter((org) =>
+                                                org.name.toLowerCase().includes(orgSearch.toLowerCase())
+                                            )
+                                            .map((org) => (
+                                                <div
+                                                    key={org._id}
+                                                    onClick={() => {
+                                                        // Call handleOrgChange with the selected org id
+                                                        handleOrgChange({ target: { value: org._id } });
+
+                                                        setIsOrgDropdownOpen(false);
+                                                        setOrgSearch("");
+                                                    }}
+                                                    className="px-3 py-2 cursor-pointer hover:bg-blue-100"
+                                                >
+                                                    {org.name}
+                                                </div>
+                                            ))}
+
+                                    </div>
+                                )}
+                            </div>
+                            {/* Custom venue Dropdown */}
+                            <div className="relative w-full mb-3" ref={venueDropdownRef}>
+                                <div
+                                    onClick={() => setIsVenueDropdownOpen((prev) => !prev)}
+                                    className={`border border-gray-300 rounded-md p-2 cursor-pointer flex justify-between items-center ${!formData.orgId ? "bg-gray-100 cursor-not-allowed" : ""
+                                        }`}
+                                >
+                                    <span>
+                                        {formData.venueId
+                                            ? filteredVenues.find((v) => v._id === formData.venueId)?.name
+                                            : "Select Venue"}
+                                    </span>
+                                    <svg
+                                        className={`w-4 h-4 transition-transform ${isVenueDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+
+                                {isVenueDropdownOpen && formData.orgId && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg  max-h-23 md:max-h-30 overflow-y-auto">
+                                        <input
+                                            type="text"
+                                            placeholder="Search..."
+                                            value={venueSearch}
+                                            onChange={(e) => setVenueSearch(e.target.value)}
+                                            className="w-full p-2 border-b border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+
+                                        {filteredVenues
+                                            .filter((venue) =>
+                                                venue.name.toLowerCase().includes(venueSearch.toLowerCase())
+                                            )
+                                            .map((venue) => {
+                                                const isCurrent = venue._id === selectedDevice?.venue?._id;
+                                                return (
+                                                    <div
+                                                        key={venue._id}
+                                                        onClick={() => {
+                                                            if (!isCurrent) {
+                                                                setFormData((prev) => ({ ...prev, venueId: venue._id }));
+                                                                setIsVenueDropdownOpen(false);
+                                                                setVenueSearch("");
+                                                            }
+                                                        }}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-100 ${isCurrent ? "bg-gray-200 text-gray-600 cursor-not-allowed" : ""
+                                                            }`}
+                                                    >
+                                                        {venue.name}
+                                                        {isCurrent ? " (Current)" : ""}
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                )}
+                            </div>
+
+
+                            <button
+                                onClick={() => setShowMap(true)}
+                                className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 px-4 rounded-md"
+                            >
+                                Select Location on Map
+                            </button>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-4">
                             <button
                                 onClick={closeModal}
-                                className="px-4 py-2 rounded-md border hover:bg-gray-100"
+                                className="px-4 py-2 border rounded-md"
                             >
                                 Cancel
                             </button>
-
                             <button
                                 onClick={saveChanges}
                                 disabled={saving}
-                                className="px-4 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800 disabled:bg-blue-400"
+                                className="px-4 py-2 bg-blue-700 text-white rounded-md disabled:bg-blue-400"
                             >
                                 {saving ? "Saving..." : "Save"}
                             </button>
@@ -328,6 +453,9 @@ const ListDevice = () => {
                 </div>
             )}
 
+
+
+
             {/* ================= DELETE MODAL ================= */}
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
@@ -335,6 +463,38 @@ const ListDevice = () => {
                 onConfirm={handleDelete}
                 loading={deleting}
             />
+
+            {/* Map Modal */}
+            {showMap && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-lg w-11/12 max-w-2xl p-4">
+                        <MapPicker
+                            initialPosition={
+                                formData.latitude && formData.longitude
+                                    ? { lat: Number(formData.latitude), lng: Number(formData.longitude) }
+                                    : null
+                            }
+                            onSelect={(latlng) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    latitude: latlng.lat,
+                                    longitude: latlng.lng,
+                                }));
+                            }}
+                        />
+                        <div className="flex justify-end gap-3 mt-4">
+                            <button onClick={() => setShowMap(false)} className="px-4 py-2 border rounded-md">
+                                Cancel
+                            </button>
+                            <button onClick={() => setShowMap(false)} className="px-4 py-2 bg-blue-700 text-white rounded-md">
+                                Confirm Location
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 };

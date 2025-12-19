@@ -14,8 +14,41 @@ L.Icon.Default.mergeOptions({
         "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const LocationMarker = ({ setLatLng }) => {
-    const [position, setPosition] = useState(null);
+// const LocationMarker = ({ setLatLng }) => {
+//     const [position, setPosition] = useState(null);
+
+//     useMapEvents({
+//         click(e) {
+//             setPosition(e.latlng);
+//             setLatLng(e.latlng);
+//         },
+//     });
+
+//     return position ? <Marker position={position} /> : null;
+// };
+
+// const MapPicker = ({ onSelect }) => {
+//     return (
+//         <MapContainer
+//             center={[24.8607, 67.0011]} // default (Karachi)
+//             zoom={12}
+//             style={{ height: "400px", width: "100%" }}
+//         >
+//             {/* <TileLayer
+//                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+//             /> */}
+//             <TileLayer
+//                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+//                 attribution="© OpenStreetMap © CartoDB"
+//             />
+//             <LocationMarker setLatLng={onSelect} />
+//         </MapContainer>
+//     );
+// };
+
+
+const LocationMarker = ({ setLatLng, initialPosition }) => {
+    const [position, setPosition] = useState(initialPosition || null);
 
     useMapEvents({
         click(e) {
@@ -27,23 +60,22 @@ const LocationMarker = ({ setLatLng }) => {
     return position ? <Marker position={position} /> : null;
 };
 
-const MapPicker = ({ onSelect }) => {
+const MapPicker = ({ onSelect, initialPosition }) => {
     return (
         <MapContainer
-            center={[24.8607, 67.0011]} // default (Karachi)
+            center={initialPosition || [24.8607, 67.0011]} // default Karachi
             zoom={12}
             style={{ height: "400px", width: "100%" }}
         >
-            {/* <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            /> */}
             <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                 attribution="© OpenStreetMap © CartoDB"
             />
-            <LocationMarker setLatLng={onSelect} />
+            <LocationMarker setLatLng={onSelect} initialPosition={initialPosition} />
         </MapContainer>
     );
 };
+
+
 
 export default MapPicker;

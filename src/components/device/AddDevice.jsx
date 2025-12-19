@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box } from "lucide-react";
 import MapPicker from "./MapPicker";
 import { toast } from "react-toastify";
@@ -18,8 +18,12 @@ const AddDevice = () => {
     const [longitude, setLongitude] = useState(null);
     const [showMap, setShowMap] = useState(false);
 
-    const { venues, loadingVenues } = useVenues();
+    const { venues, loadingVenues, fetchVenues } = useVenues();
     const { organizations, loading } = useOrganizations();
+
+    useEffect(() => {
+        fetchVenues();
+    }, []);
 
     const handleSave = async () => {
         if (!deviceId || !venue || !organization) {
@@ -44,7 +48,7 @@ const AddDevice = () => {
             console.log(res)
 
             toast.success("Device added successfully");
-            // fetchDevices();
+            fetchDevices();
 
             setDeviceId("");
             setVenue("");
@@ -96,18 +100,20 @@ const AddDevice = () => {
                 />
 
                 <button
+                    onClick={() => setShowMap(true)}
+                    className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 px-4 rounded-md"
+                >
+                    Select Location on Map
+                </button>
+
+                <button
                     onClick={handleSave}
                     className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 px-4 rounded-md"
                 >
                     Save
                 </button>
 
-                <button
-                    onClick={() => setShowMap(true)}
-                    className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2.5 px-4 rounded-md"
-                >
-                    Select Location on Map
-                </button>
+
 
                 {showMap && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">

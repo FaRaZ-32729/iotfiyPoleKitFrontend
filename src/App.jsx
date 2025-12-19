@@ -40,6 +40,7 @@ const App = () => {
 
   return (
     <>
+      <ToastContainer position="top-right" autoClose={2000} />
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />
