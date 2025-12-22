@@ -38,7 +38,7 @@ const VenueDropdown = ({ filteredVenues, formData, setFormData, selectedDevice }
             </div>
 
             {isOpen && formData.orgId && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-30 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-23 md:max-h-30 overflow-y-auto">
                     <input
                         type="text"
                         placeholder="Search..."

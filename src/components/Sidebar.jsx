@@ -248,7 +248,7 @@ const Sidebar = () => {
                                 disabled={!selectedOrg}
                             />
 
-                            <div className="max-h-56 overflow-y-auto">
+                            <div className="max-h-23 md:max-h-30 overflow-y-auto">
                                 {!selectedOrg ? (
                                     <div className="px-4 py-2 text-gray-400 text-sm">
                                         Select organization first
