@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "../axiosConfig";
+import { toast } from "react-toastify";
 
 const DeviceContext = createContext();
 
@@ -7,6 +8,7 @@ export const useDevices = () => useContext(DeviceContext);
 
 export const DeviceProvider = ({ children }) => {
     const [devices, setDevices] = useState([]);
+    const [devicesByV, setDevicesByV] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -23,6 +25,24 @@ export const DeviceProvider = ({ children }) => {
         }
     };
 
+    const fetchDevicesByVenue = async (venueId) => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`/device/device-by-venue/${venueId}`);
+            console.log(res)
+            setDevicesByV(res.data.devices || []);
+        } catch (err) {
+            setDevicesByV([]);
+            if (err.response?.status === 404) {
+                toast.info("No devices found for this venue");
+            } else {
+                toast.error("Failed to load devices");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchDevices();
     }, []);
@@ -32,9 +52,12 @@ export const DeviceProvider = ({ children }) => {
             value={{
                 devices,
                 setDevices,
+                devicesByV,
+                setDevicesByV,
                 loading,
                 error,
                 fetchDevices,
+                fetchDevicesByVenue
             }}
         >
             {children}
