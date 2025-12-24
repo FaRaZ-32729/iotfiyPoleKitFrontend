@@ -59,7 +59,7 @@ const App = () => {
           <Route element={<AppLayout />}>
             <Route path="venue" element={<Venue />} />
             <Route path="user" element={<UserManagement />} />
-            <Route path="device" element={<DeviceManagement />} />
+
           </Route>
         </Route>
 
@@ -67,6 +67,7 @@ const App = () => {
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route element={<AppLayout />}>
             <Route path="organization" element={<OrganizationManagement />} />
+            <Route path="device" element={<DeviceManagement />} />
           </Route>
         </Route>
 

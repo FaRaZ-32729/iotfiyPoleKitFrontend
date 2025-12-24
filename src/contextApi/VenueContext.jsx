@@ -75,7 +75,7 @@ export const VenueProvider = ({ children }) => {
                     res = await axios.get("/venue/all");
                     setVenues(res?.data || []);
                 } else if (user.role === "manager") {
-                    res = await axios.get(`/venue/venue-by-org/${user.organization}`);
+                    res = await axios.get(`/venue/venue-by-org/${user.organization._id}`);
                     setVenues(res?.data?.venues || []);
                 }
             }
@@ -93,7 +93,7 @@ export const VenueProvider = ({ children }) => {
             setVenues([]);
             return;
         }
-
+        // console.log(`organization id in venue context ${orgId}`)
         try {
             setLoadingVenues(true);
             const res = await axios.get(`/venue/venue-by-org/${orgId}`);

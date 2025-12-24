@@ -4,7 +4,7 @@ const DeleteConfirmationModal = ({ isOpen, onCancel, onConfirm, loading }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6">
                 <h2 className="text-lg font-semibold mb-4 text-center">
                     Are you sure you want to delete this organization?

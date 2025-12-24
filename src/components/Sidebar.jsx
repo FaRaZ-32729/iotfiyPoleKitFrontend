@@ -3,6 +3,7 @@ import { List, AlertCircle, CheckCircle, ChevronDown } from "lucide-react";
 import { useOrganizations } from "../contextApi/OrganizationContext";
 import { useVenues } from "../contextApi/VenueContext";
 import { useDevices } from "../contextApi/DeviceContext";
+import { useAuth } from "../contextApi/AuthContext";
 
 const Sidebar = () => {
     const [activeTab, setActiveTab] = useState("all");
@@ -12,7 +13,12 @@ const Sidebar = () => {
     const [venueSearch, setVenueSearch] = useState("");
     const orgRef = useRef(null);
     const venueRef = useRef(null);
+    const { user } = useAuth();
 
+    // roles
+    const isAdmin = user?.role === "admin";
+    const isManager = user?.role === "manager";
+    const isUser = user?.role === "user";
 
 
     // logic state
@@ -22,6 +28,14 @@ const Sidebar = () => {
     const { venues, fetchVenuesByOrg } = useVenues();
     const { devicesByV, loading, fetchDevicesByVenue, setDevicesByV } = useDevices();
 
+
+    const userVenues =
+        isUser && user?.venues?.length > 0
+            ? user.venues.map(v => ({
+                _id: v.venueId,
+                name: v.venueName,
+            }))
+            : venues;
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -37,8 +51,39 @@ const Sidebar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        if (
+            !isManager &&
+            organizations.length > 0 &&
+            !selectedOrg
+        ) {
+            const firstOrg = organizations[0];
+            setSelectedOrg(firstOrg);
+            fetchVenuesByOrg(firstOrg._id);
+        }
+    }, [organizations, isManager]);
+
+    useEffect(() => {
+        if (isManager && user?.organization) {
+            setSelectedOrg(user.organization);
+            fetchVenuesByOrg(user.organization._id);
+        }
+
+        if (isUser && user?.organization) {
+            setSelectedOrg(user.organization);
+        }
+    }, [isManager, isUser, user?.organization]);
 
 
+    useEffect(() => {
+        const venueList = isUser ? userVenues : venues;
+
+        if (venueList.length > 0 && selectedOrg && !selectedVenue) {
+            const firstVenue = venueList[0];
+            setSelectedVenue(firstVenue);
+            fetchDevicesByVenue(firstVenue._id);
+        }
+    }, [venues, userVenues, isUser]);
 
     const tabs = [
         { id: "all", label: "All", icon: List },
@@ -54,13 +99,25 @@ const Sidebar = () => {
                 {/* Organization Dropdown */}
                 <div className="relative" ref={orgRef}>
                     <button
-                        onClick={() => setOrgOpen(!orgOpen)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-medium shadow "
+                        onClick={() => !(isManager || isUser) && setOrgOpen(!orgOpen)}
+                        disabled={isManager || isUser}
+                        title={selectedOrg?.name || "Organization"}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium shadow
+                            ${(isManager || isUser)
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-blue-100 text-blue-700"
+                            }
+                         `}
                     >
-                        Organization
-                        <ChevronDown className="h-4 w-4" />
+                        {selectedOrg
+                            ? selectedOrg.name.length > 5
+                                ? `${selectedOrg.name.slice(0, 6)}...`
+                                : selectedOrg.name
+                            : "Organization"}
+                        {!(isManager || isUser) && <ChevronDown className="h-4 w-4" />}
                     </button>
-                    {orgOpen && (
+
+                    {orgOpen && !(isManager || isUser) && (
                         <div className="absolute mt-2 w-64 bg-white border rounded-lg shadow-md z-10">
                             {/* Search */}
                             <input
@@ -103,11 +160,18 @@ const Sidebar = () => {
                 <div className="relative" ref={venueRef}>
                     <button
                         onClick={() => setVenueOpen(!venueOpen)}
-                        className="flex items-center gap-2 px-4 py-2  text-blue-700 rounded-full font-medium shadow "
+                        title={selectedVenue?.name || "Venue"}
+                        className="flex items-center gap-2 px-4 py-2 text-blue-700 rounded-full font-medium shadow"
                     >
-                        Venue
+                        {/* {selectedVenue ? selectedVenue.name : "Venue"} */}
+                        {selectedVenue
+                            ? selectedVenue.name.length > 5
+                                ? `${selectedVenue.name.slice(0, 6)}...`
+                                : selectedVenue.name
+                            : "Venue"}
                         <ChevronDown className="h-4 w-4" />
                     </button>
+
                     {venueOpen && (
                         <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-md z-10">
                             {/* Search */}
@@ -125,15 +189,16 @@ const Sidebar = () => {
                                     <div className="px-4 py-2 text-gray-400 text-sm">
                                         Select organization first
                                     </div>
-                                ) : venues.length === 0 ? (
+                                ) : (isUser ? userVenues.length === 0 : venues.length === 0) ? (
                                     <div className="px-4 py-2 text-gray-400 text-sm">
                                         No venues found
                                     </div>
                                 ) : (
-                                    venues
+                                    (isUser ? userVenues : venues)
                                         .filter(venue =>
                                             venue.name.toLowerCase().includes(venueSearch.toLowerCase())
                                         )
+
                                         .map((venue) => (
                                             <div
                                                 key={venue._id}
@@ -171,21 +236,6 @@ const Sidebar = () => {
             </div>
 
             {/* Desktop Device List */}
-            {/* <div className="p-4 overflow-y-auto space-y-3 hidden md:block">
-                {[...Array(12)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="p-3 border rounded-xl flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                    >
-                        <div>
-                            <p className="font-medium">DEVICE-{i + 1}</p>
-                            <p className="text-gray-500 text-xs">Issue Detected</p>
-                        </div>
-                        <AlertCircle className="h-5 w-5 text-yellow-500" />
-                    </div>
-                ))}
-            </div> */}
-
             <div className="p-4 overflow-y-auto space-y-3 hidden md:block">
                 {loading ? (
                     <p className="text-sm text-gray-500">Loading devices...</p>
@@ -211,22 +261,6 @@ const Sidebar = () => {
 
 
             {/* 🔄 MOBILE HORIZONTAL Cards */}
-            {/* <div className="px-3 flex gap-4 overflow-x-auto pb-5 md:hidden">
-                {[...Array(6)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="min-w-[150px] bg-white border rounded-2xl shadow-sm p-4"
-                    >
-                        <p className="font-semibold">DEVICE-{i + 1}</p>
-                        <div className="mt-2">
-                            <p className="text-xs font-semibold text-gray-600">Volt :<span className="inline-block text-xs text-red-500 px-1">
-                                Detected
-                            </span></p>
-                        </div>
-                    </div>
-                ))}
-            </div> */}
-
             <div className="px-3 flex gap-4 overflow-x-auto pb-5 md:hidden">
                 {devicesByV.map((device) => (
                     <div
@@ -240,8 +274,6 @@ const Sidebar = () => {
                     </div>
                 ))}
             </div>
-
-
         </aside>
     );
 };

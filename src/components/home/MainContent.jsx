@@ -40,7 +40,7 @@ const MainContent = () => {
             </div>
 
             {/* Mobile Map */}
-            <div className="md:hidden w-full h-[330px] mb-15">
+            <div className="md:hidden w-full h-[calc(100vh-64px)]">
                 <DeviceMapView devices={devicesByV} />
             </div>
         </main>
