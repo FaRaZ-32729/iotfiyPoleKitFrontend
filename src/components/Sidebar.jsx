@@ -4,6 +4,7 @@ import { useOrganizations } from "../contextApi/OrganizationContext";
 import { useVenues } from "../contextApi/VenueContext";
 import { useDevices } from "../contextApi/DeviceContext";
 import { useAuth } from "../contextApi/AuthContext";
+import DeviceTabsAndList from "./home/DeviceTabsAndList";
 
 const Sidebar = () => {
     const [activeTab, setActiveTab] = useState("all");
@@ -13,6 +14,7 @@ const Sidebar = () => {
     const [venueSearch, setVenueSearch] = useState("");
     const orgRef = useRef(null);
     const venueRef = useRef(null);
+    const hasLoadedOnceRef = useRef(false);
     const { user } = useAuth();
 
     // roles
@@ -27,6 +29,39 @@ const Sidebar = () => {
     const { organizations } = useOrganizations();
     const { venues, fetchVenuesByOrg } = useVenues();
     const { devicesByV, loading, fetchDevicesByVenue, setDevicesByV } = useDevices();
+
+    // useEffect(() => {
+    //     if (!selectedVenue?._id) return;
+
+    //     // initial fetch (optional but recommended)
+    //     fetchDevicesByVenue(selectedVenue._id);
+
+    //     const intervalId = setInterval(() => {
+    //         fetchDevicesByVenue(selectedVenue._id);
+    //     }, 30000); // 30 seconds
+
+    //     return () => {
+    //         clearInterval(intervalId);
+    //     };
+    // }, [selectedVenue?._id]);
+
+    useEffect(() => {
+        if (!selectedVenue?._id) return;
+
+        const fetchDevices = async () => {
+            await fetchDevicesByVenue(selectedVenue._id);
+            hasLoadedOnceRef.current = true; // ✅ mark initial load done
+        };
+
+        fetchDevices();
+
+        const intervalId = setInterval(() => {
+            fetchDevicesByVenue(selectedVenue._id); // polling (no skeleton)
+        }, 30000);
+
+        return () => clearInterval(intervalId);
+    }, [selectedVenue?._id]);
+
 
 
     const userVenues =
@@ -221,59 +256,38 @@ const Sidebar = () => {
                 </div>
             </div>
 
-            {/* Desktop Tabs */}
+            {/* Tabs (Desktop) */}
             <div className="hidden md:flex border-b">
                 {tabs.map(({ id, label, icon: Icon }) => (
                     <button
                         key={id}
                         onClick={() => setActiveTab(id)}
-                        className={`flex-1 py-3 flex items-center justify-center gap-2 text-sm font-medium 
-                            ${activeTab === id ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
+                        className={`flex-1 py-3 flex items-center justify-center gap-2 text-sm font-medium
+                ${activeTab === id
+                                ? "border-b-2 border-blue-600 text-blue-600"
+                                : "text-gray-500"
+                            }`}
                     >
-                        <Icon className="h-4 w-4" /> {label}
+                        <Icon className="h-4 w-4" />
+                        {label}
                     </button>
                 ))}
             </div>
 
-            {/* Desktop Device List */}
-            <div className="p-4 overflow-y-auto space-y-3 hidden md:block">
-                {loading ? (
-                    <p className="text-sm text-gray-500">Loading devices...</p>
-                ) : devicesByV.length === 0 ? (
-                    <p className="text-sm text-gray-400">No devices found</p>
-                ) : (
-                    devicesByV.map((device) => (
-                        <div
-                            key={device._id}
-                            className="p-3 border rounded-xl flex justify-between items-center hover:bg-gray-50 cursor-pointer"
-                        >
-                            <div>
-                                <p className="font-medium">{device.deviceId}</p>
-                                <p className="text-gray-500 text-xs">
-                                    Venue: {device.venue?.name || "N/A"}
-                                </p>
-                            </div>
-                            <AlertCircle className="h-5 w-5 text-yellow-500" />
-                        </div>
-                    ))
-                )}
-            </div>
+            <DeviceTabsAndList
+                devices={devicesByV}
+                loading={loading}
+                activeTab={activeTab}
+                initialLoading={!hasLoadedOnceRef.current && loading}
+            />
 
 
-            {/* 🔄 MOBILE HORIZONTAL Cards */}
-            <div className="px-3 flex gap-4 overflow-x-auto pb-5 md:hidden">
-                {devicesByV.map((device) => (
-                    <div
-                        key={device._id}
-                        className="min-w-[150px] bg-white border rounded-2xl shadow-sm p-4"
-                    >
-                        <p className="font-semibold">{device.deviceId}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                            {device.venue?.name}
-                        </p>
-                    </div>
-                ))}
-            </div>
+            {/* <DeviceTabsAndList
+                devices={devicesByV}
+                loading={loading}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+            /> */}
         </aside>
     );
 };
