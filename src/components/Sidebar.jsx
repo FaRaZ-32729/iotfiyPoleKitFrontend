@@ -26,7 +26,7 @@ const Sidebar = () => {
     // logic state
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [selectedVenue, setSelectedVenue] = useState(null);
-    const { organizations } = useOrganizations();
+    const { organizations, fetchOrganizations } = useOrganizations();
     const { venues, fetchVenuesByOrg } = useVenues();
     const { devicesByV, loading, fetchDevicesByVenue, setDevicesByV } = useDevices();
 
@@ -44,6 +44,12 @@ const Sidebar = () => {
     //         clearInterval(intervalId);
     //     };
     // }, [selectedVenue?._id]);
+
+    useEffect(() => {
+        if (isAdmin) {
+            fetchOrganizations();
+        }
+    }, [isAdmin]);
 
     useEffect(() => {
         if (!selectedVenue?._id) return;
@@ -88,7 +94,7 @@ const Sidebar = () => {
 
     useEffect(() => {
         if (
-            !isManager &&
+            isAdmin &&
             organizations.length > 0 &&
             !selectedOrg
         ) {
@@ -96,7 +102,7 @@ const Sidebar = () => {
             setSelectedOrg(firstOrg);
             fetchVenuesByOrg(firstOrg._id);
         }
-    }, [organizations, isManager]);
+    }, [organizations, isAdmin]);
 
     useEffect(() => {
         if (isManager && user?.organization) {

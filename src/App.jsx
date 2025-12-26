@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import SetupPassword from "./components/auth/SetupPassword";
 import VerifyOtp from "./components/auth/VerifyOtp";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import UserStatusChecker from "./components/users/UserStatusChecker";
 
 const App = () => {
   // return (
@@ -41,6 +42,7 @@ const App = () => {
   return (
     <>
       <ToastContainer position="top-right" autoClose={2000} />
+      <UserStatusChecker />
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />

@@ -529,6 +529,7 @@ const ListDevice = () => {
                 onCancel={cancelDelete}
                 onConfirm={handleDelete}
                 loading={deleting}
+                itemName="device"
             />
 
             {/* Map Modal */}

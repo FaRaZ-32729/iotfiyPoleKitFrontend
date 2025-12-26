@@ -24,7 +24,7 @@ const AddVenue = () => {
 
     useEffect(() => {
         if (user.role !== "admin") {
-            setOrganization(user.organization);
+            setOrganization(user.organization._id);
         }
     }, [user]);
 
@@ -107,7 +107,7 @@ const AddVenue = () => {
                 ) : (
                     <input
                         type="text"
-                        value={user.organization}
+                        value={user.organization.name}
                         disabled
                         className="w-full pl-4 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-xs md:text-base"
                     />

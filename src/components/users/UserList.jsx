@@ -404,6 +404,7 @@ const UserList = () => {
                 onCancel={cancelDelete}
                 onConfirm={handleDelete}
                 loading={deleting}
+                itemName="user"
             />
         </div>
     );

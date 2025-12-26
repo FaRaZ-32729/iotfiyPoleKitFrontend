@@ -189,6 +189,7 @@ const ListOrganization = () => {
                 onCancel={cancelDelete}
                 onConfirm={handleDelete}
                 loading={deleting}
+                itemName="organization"
             />
         </div>
     );
