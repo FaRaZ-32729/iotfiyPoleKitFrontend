@@ -56,14 +56,14 @@ const Sidebar = () => {
 
         const fetchDevices = async () => {
             await fetchDevicesByVenue(selectedVenue._id);
-            hasLoadedOnceRef.current = true; // ✅ mark initial load done
+            hasLoadedOnceRef.current = true;
         };
 
         fetchDevices();
 
         const intervalId = setInterval(() => {
-            fetchDevicesByVenue(selectedVenue._id); // polling (no skeleton)
-        }, 30000);
+            fetchDevicesByVenue(selectedVenue._id);
+        }, 60 * 1000);
 
         return () => clearInterval(intervalId);
     }, [selectedVenue?._id]);
